@@ -2,9 +2,9 @@ from agents.general import GeneralAgent
 import random
 import torch
 from models.linearDQ import LinearDQN
-
+import os
 class LinearDQN_Agent(GeneralAgent):
-    def __init__(self, n_actions=8, lr=0.001, bs=1000) -> None:
+    def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True) -> None:
         super().__init__()
         self.n_actions = n_actions
         self.bs = bs
@@ -13,13 +13,20 @@ class LinearDQN_Agent(GeneralAgent):
         self.model = LinearDQN(40, 256, 128, n_actions)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = torch.nn.HuberLoss()
-    
+        self.train = train
+        if not train:
+            self.load()
+            self.model.eval()
+
     def get_action(self, state, episode):
         # random moves: tradeoff between exploration / exploitation
         self.eps = 80 - episode # random function
         final_move = 0
 
-        if random.randint(0, 200) < self.eps:
+        if not self.train:
+            self.model.eval()
+
+        if random.randint(0, 200) < self.eps and self.train:
             # increasing n_games we don't get moves anymore
             final_move = random.randint(0, self.n_actions-1)
         else:
@@ -42,6 +49,8 @@ class LinearDQN_Agent(GeneralAgent):
             reward = torch.unsqueeze(reward, 0)
             done = (done, )
         
+        if not self.train:
+            self.model.eval()
         # 1. Predicted Q values with current state
         pred = self.model(observation)
 
@@ -59,3 +68,12 @@ class LinearDQN_Agent(GeneralAgent):
         loss.backward()
 
         self.optimizer.step()
+
+    def load(self, file_name='model.pth'):
+        model_folder_path = "./best_model"
+        if not os.path.exists(model_folder_path):
+            print("Error in loading")
+            exit(1)
+        
+        file_name = os.path.join(model_folder_path, file_name)
+        self.model.load_state_dict(torch.load(file_name))

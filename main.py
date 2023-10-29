@@ -8,13 +8,15 @@ from roverenv import RoverEnv
 # GLOBAL PARAMETERS
 MAX_EPISODE = 1000
 N_EPISODES = 1000
+TRAIN_MODE = True
 
 # INITIALIZE ENVIRONMENT & Agent
 env = RoverEnv(obs_space="linear")
-agent = LinearDQN_Agent()
+agent = LinearDQN_Agent(train=TRAIN_MODE)
 rewards_history = []
 # INITALIZE TRAIN LOOP
 tot_reward = 0
+best_reward = -1000
 # TODO: Add wandb visualiz
 while N_EPISODES>0:
     observation = env.get_obs()
@@ -34,7 +36,13 @@ while N_EPISODES>0:
         rewards_history.append(tot_reward)
         # Train using a sample from memory
         agent.train_long_memory()
-        print(f"--- Game: {MAX_EPISODE-N_EPISODES} - Instant Reward: {tot_reward} - Avg. Reward: {np.mean(rewards_history[:-10])} - Visited: {score} - Collected: {t_score} ---")
+        avg_rew = np.mean(rewards_history[:-10])
+        print(f"--- Game: {MAX_EPISODE-N_EPISODES} - Instant Reward: {tot_reward} - Avg. Reward: {avg_rew} - Visited: {score} - Collected: {t_score} ---")
+        if tot_reward > avg_rew and TRAIN_MODE:
+            best_reward = tot_reward
+            print("Saving model..")
+            agent.model.save()
+
         # END EPISODE
         N_EPISODES-=1
         tot_reward = 0
