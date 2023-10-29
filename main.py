@@ -38,3 +38,5 @@ while N_EPISODES>0:
         # END EPISODE
         N_EPISODES-=1
         tot_reward = 0
+    
+    agent.model.save()
