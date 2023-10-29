@@ -52,11 +52,13 @@ class RoverEnv():
 
         # Pygame initialization
         self.render_mode = render_mode
-        pygame.init()
-        self.font = pygame.font.Font('arial.ttf', 25)
-        self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('RoverEnv')
-        self.clock = pygame.time.Clock()
+
+        if self.render_mode == "human":
+            pygame.init()
+            self.font = pygame.font.Font('arial.ttf', 25)
+            self.display = pygame.display.set_mode((self.w, self.h))
+            pygame.display.set_caption('RoverEnv')
+            self.clock = pygame.time.Clock()
         self.reset()
 
     def reset(self):
@@ -75,7 +77,8 @@ class RoverEnv():
         self._place_obstacles()
         # keep track of frame iteration
         self.frame_iteration = 0
-        self._update_ui()
+        if self.render_mode == "human":
+            self._update_ui()
         if self.obs_space != "linear":
             self.matrix = np.transpose(pygame.surfarray.array3d(self.display)[::BLOCK_SIZE, ::BLOCK_SIZE], (2,0,1))
     
@@ -179,11 +182,13 @@ class RoverEnv():
             print("Good exploration!")
             done = True
         
-        self._update_ui()
+        if self.render_mode == "human":
+            self._update_ui()
+            self.clock.tick(SPEED)
+
         if self.obs_space != "linear":
             self.matrix = np.transpose(pygame.surfarray.array3d(self.display)[::BLOCK_SIZE, ::BLOCK_SIZE], (2,0,1))
 
-        self.clock.tick(SPEED)
         return self.reward, done, self.score, self.targets_collected
     
     def _finished(self):
