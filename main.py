@@ -7,35 +7,34 @@ from agents.LQAgent import LinearDQN_Agent
 from roverenv import RoverEnv
 import wandb
 # GLOBAL PARAMETERS
-MAX_EPISODE = 5000
+MAX_EPISODES = 5000
 N_EPISODES = 5000
-TRAIN_MODE = True
+TRAIN_MODE = False
+LOG_ON = False
+LR=0.001
 
-wandb.login()
-
-LR=0.0001
-
-run = wandb.init(
-    # Set the project where this run will be logged
-    project="my-awesome-project",
-    # Track hyperparameters and run metadata
-    config={
-        "learning_rate": LR,
-        "epochs": MAX_EPISODE,
-    })
+if LOG_ON:
+    wandb.login()
+    run = wandb.init(
+        # Set the project where this run will be logged
+        project="my-awesome-project",
+        # Track hyperparameters and run metadata
+        config={
+            "learning_rate": LR,
+            "epochs": MAX_EPISODES,
+        })
+    
 # INITIALIZE ENVIRONMENT & Agent
-env = RoverEnv(obs_space="linear", render_mode="not_human")
-agent = LinearDQN_Agent(lr=LR, train=TRAIN_MODE)
+env = RoverEnv(obs_space="linear", render_mode="human")
+agent = LinearDQN_Agent(lr=LR, train=TRAIN_MODE, load_path="model_best.pth")
 rewards_history = []
 # INITALIZE TRAIN LOOP
 tot_reward = 0
 best_reward = -1000
-# TODO: Add wandb visualiz
+
 while N_EPISODES>0:
     observation = env.get_obs()
-
-    action = agent.get_action(observation, MAX_EPISODE-N_EPISODES)
-
+    action = agent.get_action(observation, MAX_EPISODES-N_EPISODES)
     reward, done, score, t_score = env.step(action)
     tot_reward+=reward
     observation_ = env.get_obs()
@@ -50,9 +49,10 @@ while N_EPISODES>0:
         # Train using a sample from memory
         agent.train_long_memory()
         avg_rew = np.mean(rewards_history[:-10])
-        wandb.log({"Instant_reward": tot_reward, "Avg_reward": avg_rew, "Collected": t_score, "Visited":score})
+        if LOG_ON:
+            wandb.log({"Instant_reward": tot_reward, "Avg_reward": avg_rew, "Collected": t_score, "Visited":score})
 
-        print(f"--- Game: {MAX_EPISODE-N_EPISODES} - Instant Reward: {tot_reward} - Avg. Reward: {avg_rew} - Visited: {score} - Collected: {t_score} ---")
+        print(f"--- Game: {MAX_EPISODES-N_EPISODES} - Instant Reward: {tot_reward} - Avg. Reward: {avg_rew} - Visited: {score} - Collected: {t_score} ---")
         if tot_reward > avg_rew and TRAIN_MODE:
             best_reward = tot_reward
             print("Saving model..")

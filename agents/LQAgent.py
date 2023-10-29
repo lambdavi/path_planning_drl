@@ -4,7 +4,7 @@ import torch
 from models.linearDQ import LinearDQN
 import os
 class LinearDQN_Agent(GeneralAgent):
-    def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True) -> None:
+    def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True, load_path="") -> None:
         super().__init__()
         self.n_actions = n_actions
         self.bs = bs
@@ -15,7 +15,7 @@ class LinearDQN_Agent(GeneralAgent):
         self.criterion = torch.nn.HuberLoss()
         self.train = train
         if not train:
-            self.load()
+            self.load(load_path)
             self.model.eval()
 
     def get_action(self, state, episode):
