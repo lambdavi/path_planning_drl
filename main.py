@@ -6,12 +6,14 @@ import numpy as np
 from agents.LQAgent import LinearDQN_Agent
 from roverenv import RoverEnv
 import wandb
-# GLOBAL PARAMETERS
+
+# CFG PARAMETERS
 MAX_EPISODES = 5000
 N_EPISODES = 5000
-TRAIN_MODE = False
+TRAIN_MODE = True
 LOG_ON = False
-LR=0.001
+LR=0.0001
+BS=1000
 
 if LOG_ON:
     wandb.login()
@@ -22,11 +24,12 @@ if LOG_ON:
         config={
             "learning_rate": LR,
             "epochs": MAX_EPISODES,
+            "batch_size": BS
         })
     
 # INITIALIZE ENVIRONMENT & Agent
 env = RoverEnv(obs_space="linear", render_mode="human")
-agent = LinearDQN_Agent(lr=LR, train=TRAIN_MODE, load_path="model_best.pth")
+agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt")
 rewards_history = []
 # INITALIZE TRAIN LOOP
 tot_reward = 0
@@ -53,8 +56,8 @@ while N_EPISODES>0:
             wandb.log({"Instant_reward": tot_reward, "Avg_reward": avg_rew, "Collected": t_score, "Visited":score})
 
         print(f"--- Game: {MAX_EPISODES-N_EPISODES} - Instant Reward: {tot_reward} - Avg. Reward: {avg_rew} - Visited: {score} - Collected: {t_score} ---")
-        if tot_reward > avg_rew and TRAIN_MODE:
-            best_reward = tot_reward
+        if avg_rew > best_reward and TRAIN_MODE:
+            best_reward = avg_rew
             print("Saving model..")
             agent.model.save()
 

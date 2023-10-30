@@ -69,7 +69,7 @@ class LinearDQN_Agent(GeneralAgent):
 
         self.optimizer.step()
 
-    def load(self, file_name='model.pth'):
+    def load(self, file_name='model.pt'):
         model_folder_path = "./best_model"
         if not os.path.exists(model_folder_path):
             print("Error in loading")
