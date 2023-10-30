@@ -28,7 +28,7 @@ if LOG_ON:
         })
     
 # INITIALIZE ENVIRONMENT & Agent
-env = RoverEnv(obs_space="linear", render_mode="human")
+env = RoverEnv(obs_space="linear", render_mode="not_human")
 agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt")
 rewards_history = []
 # INITALIZE TRAIN LOOP
