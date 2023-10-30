@@ -11,9 +11,9 @@ import wandb
 MAX_EPISODES = 5000
 N_EPISODES = 5000
 TRAIN_MODE = True
-LOG_ON = False
+LOG_ON = True
 LR=0.0001
-BS=1000
+BS=800
 
 if LOG_ON:
     wandb.login()
