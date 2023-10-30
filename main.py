@@ -8,12 +8,13 @@ from roverenv import RoverEnv
 import wandb
 
 # CFG PARAMETERS
-MAX_EPISODES = 5000
-N_EPISODES = 5000
+MAX_EPISODES = 1000
+N_EPISODES = 1000
 TRAIN_MODE = True
 LOG_ON = True
-LR=0.0001
-BS=800
+LR=0.001
+BS=1100
+SCHEDULER = False
 
 if LOG_ON:
     wandb.login()
@@ -24,12 +25,13 @@ if LOG_ON:
         config={
             "learning_rate": LR,
             "epochs": MAX_EPISODES,
-            "batch_size": BS
+            "batch_size": BS,
+            "scheduler": SCHEDULER
         })
     
 # INITIALIZE ENVIRONMENT & Agent
 env = RoverEnv(obs_space="linear", render_mode="not_human")
-agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt")
+agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt", sched=SCHEDULER)
 rewards_history = []
 # INITALIZE TRAIN LOOP
 tot_reward = 0
@@ -52,6 +54,9 @@ while N_EPISODES>0:
         # Train using a sample from memory
         agent.train_long_memory()
         avg_rew = np.mean(rewards_history[-50:])
+
+        if SCHEDULER:
+            agent.scheduler.step(tot_reward)
         if LOG_ON:
             wandb.log({"Instant_reward": tot_reward, "Avg_reward": avg_rew, "Collected": t_score, "Visited":score})
 

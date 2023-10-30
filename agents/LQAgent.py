@@ -4,7 +4,7 @@ import torch
 from models.linearDQ import LinearDQN
 import os
 class LinearDQN_Agent(GeneralAgent):
-    def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True, load_path="") -> None:
+    def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True, load_path="", sched=False) -> None:
         super().__init__()
         self.n_actions = n_actions
         self.bs = bs
@@ -14,6 +14,9 @@ class LinearDQN_Agent(GeneralAgent):
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = torch.nn.HuberLoss()
         self.train = train
+        self.scheduler = None
+        if sched:
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=self.optimizer, factor=0.5, patience=30, verbose=True)
         if not train:
             self.load(load_path)
             self.model.eval()
@@ -66,7 +69,6 @@ class LinearDQN_Agent(GeneralAgent):
         self.optimizer.zero_grad()
         loss = self.criterion(target, pred) # Q_new and Q
         loss.backward()
-
         self.optimizer.step()
 
     def load(self, file_name='model.pt'):
