@@ -28,7 +28,7 @@ if LOG_ON:
         })
     
 # INITIALIZE ENVIRONMENT & Agent
-env = RoverEnv(obs_space="linear", render_mode="not_human")
+env = RoverEnv(obs_space="linear", render_mode="human")
 agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt")
 rewards_history = []
 # INITALIZE TRAIN LOOP
@@ -51,7 +51,7 @@ while N_EPISODES>0:
         rewards_history.append(tot_reward)
         # Train using a sample from memory
         agent.train_long_memory()
-        avg_rew = np.mean(rewards_history[:-10])
+        avg_rew = np.mean(rewards_history[-50:])
         if LOG_ON:
             wandb.log({"Instant_reward": tot_reward, "Avg_reward": avg_rew, "Collected": t_score, "Visited":score})
 
