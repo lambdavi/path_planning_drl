@@ -3,7 +3,7 @@
 """
 # IMPORTS
 import numpy as np
-from agents.LQAgent import LinearDQN_Agent
+from agents.QAgent import LinearDQN_Agent, ImageDQNAgent
 from roverenv import RoverEnv
 import wandb
 
@@ -11,10 +11,11 @@ import wandb
 MAX_EPISODES = 1000
 N_EPISODES = 1000
 TRAIN_MODE = True
-LOG_ON = True
-LR=0.001
-BS=1100
+LOG_ON = False
+LR=0.0001
+BS=32
 SCHEDULER = False
+OBS_SPACE = "image"
 
 if LOG_ON:
     wandb.login()
@@ -30,8 +31,12 @@ if LOG_ON:
         })
     
 # INITIALIZE ENVIRONMENT & Agent
-env = RoverEnv(obs_space="linear", render_mode="not_human")
-agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt", sched=SCHEDULER)
+env = RoverEnv(obs_space=OBS_SPACE, render_mode="not_human")
+if OBS_SPACE == "linear":
+    agent = LinearDQN_Agent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt", sched=SCHEDULER)
+else:
+    agent = ImageDQNAgent(lr=LR, bs=BS, train=TRAIN_MODE, load_path="model.pt", sched=SCHEDULER)
+    
 rewards_history = []
 # INITALIZE TRAIN LOOP
 tot_reward = 0

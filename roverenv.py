@@ -16,7 +16,7 @@ GREEN = (0, 255, 0)
 YELLOW = (255,255,0)
 
 BLOCK_SIZE = 20
-SPEED = 60
+SPEED = 120
 
 # MAIN CLASS FOR ENVIRONMENT
 class RoverEnv():
@@ -38,7 +38,7 @@ class RoverEnv():
         self.agent_location = None
         self.bonus=False
         self.max_iter=w*h/(BLOCK_SIZE*BLOCK_SIZE)
-
+        
         self.action_to_direction = {
             0: Point(BLOCK_SIZE, 0), # right
             1: Point(0, BLOCK_SIZE), # up
@@ -59,6 +59,8 @@ class RoverEnv():
             self.display = pygame.display.set_mode((self.w, self.h))
             pygame.display.set_caption('RoverEnv')
             self.clock = pygame.time.Clock()
+        else:
+            self.display = None  # Set display to None when not in "human" mode
         self.reset()
 
     def reset(self):
@@ -70,17 +72,13 @@ class RoverEnv():
         self.bonus=False
         self.targets_collected=0
         self.visited=[self.agent_location]
-        # TODO: change targets if visited to better learn exploration
         self.obstacles = []
         self.targets = []
         self._place_targets()
         self._place_obstacles()
         # keep track of frame iteration
         self.frame_iteration = 0
-        if self.render_mode == "human":
-            self._update_ui()
-        if self.obs_space != "linear":
-            self.matrix = np.transpose(pygame.surfarray.array3d(self.display)[::BLOCK_SIZE, ::BLOCK_SIZE], (2,0,1))
+        self._update_ui()
     
     def _place_targets(self, n=4):
         while n>0:
@@ -103,6 +101,9 @@ class RoverEnv():
         """
         We calculate the (local) state from the game. The state is composed by 11 values.
         """
+
+        if self.obs_space == "image":
+            return self.matrix
         # Get points nearby
         point_l = Point(self.agent_location.x - 20, self.agent_location.y)
         point_r = Point(self.agent_location.x + 20, self.agent_location.y)
@@ -144,7 +145,6 @@ class RoverEnv():
 
     
         ] # Size = 16
-        # TODO: find only next target and give informations about how to find it 
         target_location = self._target_location()
         for t in target_location:
             neighbors += t
@@ -182,12 +182,9 @@ class RoverEnv():
             print("Good exploration!")
             done = True
         
-        if self.render_mode == "human":
-            self._update_ui()
+        self._update_ui()
+        if self.render_mode=="human":
             self.clock.tick(SPEED)
-
-        if self.obs_space != "linear":
-            self.matrix = np.transpose(pygame.surfarray.array3d(self.display)[::BLOCK_SIZE, ::BLOCK_SIZE], (2,0,1))
 
         return self.reward, done, self.score, self.targets_collected
     
@@ -252,30 +249,37 @@ class RoverEnv():
         return False
     
     def _update_ui(self):
-        self.display.fill(BLACK)
+
+        buffer = pygame.Surface((self.w, self.h))
+        buffer.fill(BLACK)
 
         # Print targets
         for point in self.targets:
-            pygame.draw.rect(self.display, BLUE, pygame.Rect(point.x, point.y, BLOCK_SIZE, BLOCK_SIZE))
+            pygame.draw.rect(buffer, BLUE, pygame.Rect(point.x, point.y, BLOCK_SIZE, BLOCK_SIZE))
         
         # Print visited
         for point in self.visited:
-            pygame.draw.rect(self.display, YELLOW, pygame.Rect(point.x, point.y, BLOCK_SIZE, BLOCK_SIZE))
+            pygame.draw.rect(buffer, YELLOW, pygame.Rect(point.x, point.y, BLOCK_SIZE, BLOCK_SIZE))
         
         # Print obstacles
         for point in self.obstacles:
-            pygame.draw.rect(self.display, RED, pygame.Rect(point.x, point.y, BLOCK_SIZE, BLOCK_SIZE))
+            pygame.draw.rect(buffer, RED, pygame.Rect(point.x, point.y, BLOCK_SIZE, BLOCK_SIZE))
         
         # Print agent
         pt = self.agent_location
-        pygame.draw.rect(self.display, GREEN, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+        pygame.draw.rect(buffer, GREEN, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
 
+        if self.obs_space != "linear":
+            self.matrix = np.transpose(pygame.surfarray.array3d(buffer)[::BLOCK_SIZE, ::BLOCK_SIZE], (2, 0, 1))
         
-        text = self.font.render("Visited: " + str(self.score), True, WHITE)
-        text2 = self.font.render("Target collected: " + str(self.targets_collected), True, WHITE)
-
-        self.display.blit(text, [0, 0])
-        self.display.blit(text2, [300, 0])
-
-        pygame.display.flip()
+        
+        if self.render_mode=="human":
+            text = self.font.render("Visited: " + str(self.score), True, WHITE)
+            text2 = self.font.render("Target collected: " + str(self.targets_collected), True, WHITE)
+            buffer.blit(text, [0, 0])
+            buffer.blit(text2, [300, 0])
+            self.display.blit(buffer, (0, 0))
+            pygame.display.flip()
+        else:
+            self.display = buffer
     

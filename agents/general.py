@@ -24,7 +24,7 @@ class GeneralAgent():
         observations, actions, rewards, observations_, dones = zip(*batch)
         self.train_step(np.array(observations), np.array(actions), np.array(rewards), np.array(observations_), np.array(dones))
 
-    def train_short_memory(self, observation, action, reward, observation_, done):
+    def train_short_memory(self, observation, action, reward, observation_, done):            
         self.train_step(observation, action, reward, observation_, done)
 
     
