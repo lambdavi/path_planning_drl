@@ -77,3 +77,33 @@ class ImageDQN_Mobilenet(nn.Module):
         
         file_name = os.path.join(model_folder_path, file_name)
         save(self.state_dict(), file_name)
+
+class ImageDQN_RESNET(nn.Module):
+    def __init__(self, output_size):
+        super(ImageDQN_RESNET, self).__init__()
+        # Load a pretrained MobileNetV2 model
+        self.res18 = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        
+        # Modify the last classification layer to match the output_size
+        num_features = self.res18.fc.in_features
+        self.res18.fc = nn.Linear(num_features, output_size)
+
+        self.transforms = transforms.Compose([  # Convert to PIL Image (if not already)
+            transforms.Resize((224, 224)),  # Resize to a specific size
+            transforms.ToTensor(),  # Convert to a PyTorch tensor
+        ])
+
+    def forward(self, x):
+        # Pass the input through the MobileNet model
+        x = self.transforms(x)
+        x = self.res18(x)
+        return x
+    
+
+    def save(self, file_name='model_r.pt'):
+        model_folder_path = "./best_model"
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+        
+        file_name = os.path.join(model_folder_path, file_name)
+        save(self.state_dict(), file_name)

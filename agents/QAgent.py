@@ -1,7 +1,7 @@
 from agents.general import GeneralAgent
 import random
 import torch
-from models.DQ import LinearDQN, ImageDQN, ImageDQN_Mobilenet
+from models.DQ import *
 import os
 import numpy as np
 class LinearDQN_Agent(GeneralAgent):

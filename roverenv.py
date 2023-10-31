@@ -270,7 +270,7 @@ class RoverEnv():
         pygame.draw.rect(buffer, GREEN, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
 
         if self.obs_space != "linear":
-            self.matrix = np.transpose(pygame.surfarray.array3d(buffer)[::BLOCK_SIZE, ::BLOCK_SIZE], (2, 0, 1))
+            self.matrix = np.transpose(pygame.surfarray.array3d(buffer), (2, 0, 1))
         
         
         if self.render_mode=="human":
