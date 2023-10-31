@@ -1,7 +1,7 @@
 from agents.general import GeneralAgent
 import random
 import torch
-from models.DQ import LinearDQN, ImageDQN
+from models.DQ import LinearDQN, ImageDQN, ImageDQN_Mobilenet
 import os
 import numpy as np
 class LinearDQN_Agent(GeneralAgent):
@@ -16,11 +16,20 @@ class LinearDQN_Agent(GeneralAgent):
         self.criterion = torch.nn.HuberLoss()
         self.train = train
         self.scheduler = None
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
         if sched:
             self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=self.optimizer, factor=0.5, patience=30, verbose=True)
         if not train:
             self.load(load_path)
             self.model.eval()
+        print(f"Selected device: {self.device}")
+    
+        self.model = self.model.to(self.device)
         
     def get_action(self, state, episode):
         # random moves: tradeoff between exploration / exploitation
@@ -34,16 +43,16 @@ class LinearDQN_Agent(GeneralAgent):
             # increasing n_games we don't get moves anymore
             final_move = random.randint(0, self.n_actions-1)
         else:
-            state0 = torch.tensor(state, dtype=torch.float)
+            state0 = torch.tensor(state, dtype=torch.float, device=self.device)
             prediction = self.model(state0)
             final_move = torch.argmax(prediction).item() 
         
         return final_move
     
     def train_step(self, observation, action, reward, observation_, done):
-        observation = torch.tensor(observation, dtype=torch.float)
+        observation = torch.tensor(observation, dtype=torch.float, device=self.device)
         action = torch.tensor(action, dtype=torch.long)
-        observation_ = torch.tensor(observation_, dtype=torch.float)
+        observation_ = torch.tensor(observation_, dtype=torch.float, device=self.device)
         reward = torch.tensor(reward, dtype=torch.float)
 
         if len(observation.shape) == 1:
@@ -88,7 +97,7 @@ class ImageDQNAgent(GeneralAgent):
         self.bs = bs
         self.eps = None
         self.gamma = 0.9
-        self.model = ImageDQN(obs_shape[0], n_actions)  # Update input shape to match image dimensions
+        self.model = ImageDQN_Mobilenet(n_actions)  # Update input shape to match image dimensions
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = torch.nn.HuberLoss()
         self.train = train
@@ -98,6 +107,7 @@ class ImageDQNAgent(GeneralAgent):
             self.device = "mps"
         else:
             self.device = "cpu"
+        print(f"Selected device: {self.device}")
         self.scheduler = None
         if sched:
             self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=self.optimizer, factor=0.5, patience=30, verbose=True)

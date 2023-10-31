@@ -1,7 +1,7 @@
 from torch import nn, save, zeros
 from torch.nn import functional as F
 import os
-
+from torchvision import models, transforms
 class LinearDQN(nn.Module):
     def __init__(self, input_size, hidden_size, hidden_size2, output_size) -> None:
         super().__init__()
@@ -47,3 +47,33 @@ class ImageDQN(nn.Module):
         file_name = os.path.join(model_folder_path, file_name)
         save(self.state_dict(), file_name)
     
+
+class ImageDQN_Mobilenet(nn.Module):
+    def __init__(self, output_size):
+        super(ImageDQN_Mobilenet, self).__init__()
+        # Load a pretrained MobileNetV2 model
+        self.mobilenet = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.IMAGENET1K_V1)
+        
+        # Modify the last classification layer to match the output_size
+        num_features = self.mobilenet.classifier[1].in_features
+        self.mobilenet.classifier[1] = nn.Linear(num_features, output_size)
+
+        self.transforms = transforms.Compose([
+            transforms.Resize((224, 224), antialias=False),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+
+    def forward(self, x):
+        # Pass the input through the MobileNet model
+        x = self.transforms(x)
+        x = self.mobilenet(x)
+        return x
+    
+
+    def save(self, file_name='model_m.pt'):
+        model_folder_path = "./best_model"
+        if not os.path.exists(model_folder_path):
+            os.makedirs(model_folder_path)
+        
+        file_name = os.path.join(model_folder_path, file_name)
+        save(self.state_dict(), file_name)

@@ -11,7 +11,7 @@ import wandb
 MAX_EPISODES = 1000
 N_EPISODES = 1000
 TRAIN_MODE = True
-LOG_ON = False
+LOG_ON = True
 LR=0.0001
 BS=32
 SCHEDULER = False
