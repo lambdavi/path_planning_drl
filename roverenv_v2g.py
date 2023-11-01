@@ -65,6 +65,7 @@ class RoverEnvV2(Env):
     def __init__(self):
         super(RoverEnvV2, self).__init__()
 
+        self.frame_iteration = 0
         # Define a 2-D observation space
         self.observation_shape = (3, 600, 800)
         self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float32), 
@@ -111,6 +112,7 @@ class RoverEnvV2(Env):
 
         # Reset the reward
         self.ep_return  = 0
+        self.frame_iteration = 0
 
         # Determine a place to intialise the drone in
         x = random.randrange(int(self.observation_shape[1] * 0.05), int(self.observation_shape[1] * 0.10))
@@ -181,7 +183,7 @@ class RoverEnvV2(Env):
     def step(self, action):
         # Flag that marks the termination of an episode
         done = False
-        
+        self.frame_iteration += 1
         # Assert that it is a valid action 
         assert self.action_space.contains(action), "Invalid Action"
 
@@ -212,7 +214,7 @@ class RoverEnvV2(Env):
         if current_cell not in self.visited:
             # The drone has visited a new cell
             self.visited.add(current_cell)
-            reward = 0.5  # Assign a reward for visiting a new cell
+            reward = 0.1  # Assign a reward for visiting a new cell
             self.cells_visited+=1
 
         # For elements in the Ev
@@ -232,7 +234,9 @@ class RoverEnvV2(Env):
                     self.elements.remove(elem)
                     self.targets_collected +=1
                     reward = 10
-            
+        
+        if self.frame_iteration > 200:
+            done = True
         
         # Increment the episodic return
         self.ep_return += 1

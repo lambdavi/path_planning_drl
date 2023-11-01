@@ -18,7 +18,7 @@ for i in range(N_GAMES):
         if not load_checkpoint:
             agent.learn(observation, reward, observation_, done)
         observation = observation_
-        #env.render()
+        env.render()
     print(f"Episode: {i}, Reward: {score}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
     # Render the game
 
