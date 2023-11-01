@@ -67,9 +67,9 @@ class RoverEnvV2(Env):
 
         # Define a 2-D observation space
         self.observation_shape = (3, 600, 800)
-        self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float64), 
-                                            high = np.ones(self.observation_shape, dtype=np.float64),
-                                            dtype = np.float64)
+        self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float32), 
+                                            high = np.ones(self.observation_shape, dtype=np.float32),
+                                            dtype = np.float32)
     
         
         # Define an action space ranging from 0 to 7
