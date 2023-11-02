@@ -13,12 +13,14 @@ class ActorCriticLoss(torch.nn.Module):
         return loss.mean()
     
 class Agent:
-    def __init__(self, obs_space=6, alpha=0.0003, gamma=0.99, epsilon=0.2, n_actions=2, eval_mode=False) -> None:
+    def __init__(self, obs_space=6, alpha=0.0003, gamma=0.99, epsilon_initial=0.9, epsilon_min=0.1, epsilon_decay=0.995, n_actions=8, eval_mode=False) -> None:
         self.gamma = gamma
         self.n_actions = n_actions
         self.action = None
         self.action_space = [i for i in range(self.n_actions)]
-        self.epsilon = epsilon
+        self.epsilon = epsilon_initial
+        self.epsilon_min = epsilon_min
+        self.epsilon_decay = epsilon_decay
         self.model = ActorCriticNetwork(n_actions=n_actions, obs_space = obs_space)
 
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=alpha)
@@ -53,6 +55,8 @@ class Agent:
             action = action_probabilities.sample()
             self.action = action
         action = action.cpu().numpy()[0]
+        self.epsilon = max(self.epsilon * self.epsilon_decay, self.epsilon_min)
+
         return action
 
     def save_models(self, name="") -> None:

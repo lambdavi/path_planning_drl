@@ -20,7 +20,7 @@ class ActorCriticNetwork(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.transforms = transforms.Compose([
-            transforms.Resize((224,224))
+            transforms.Resize((224,224), antialias=None)
         ])
         # Define fully connected layers for value and policy networks
         self.val_fc = nn.Linear(93312,1)  # Adjust the input size (128 * 5 * 5) according to your observation space

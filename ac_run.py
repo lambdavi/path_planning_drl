@@ -1,4 +1,4 @@
-from roverenv_v2g import RoverEnvV2
+from roverenv_v2g_p import RoverEnvV2
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
@@ -20,7 +20,7 @@ for i in range(N_GAMES):
         if not load_checkpoint:
             agent.learn(observation, reward, observation_, done)
         observation = observation_
-        #env.render()
+        env.render()
     score_history.append(score)
     print(f"Episode: {i}, Avg Reward: {np.mean(score_history[-20:])}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
     # Render the game
