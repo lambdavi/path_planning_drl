@@ -11,7 +11,9 @@ N_GAMES = 1000
 load_checkpoint = False
 score_history = []
 LOG_ON = True
-
+model = DQN(policy="CnnPolicy", buffer_size=100)
+model.learn(100000, progress_bar=True)
+exit(1)
 if LOG_ON:
     wandb.login()
     run = wandb.init(
