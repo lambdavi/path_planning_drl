@@ -237,7 +237,7 @@ class RoverEnvV2(Env):
                     # Remove the fuel tank from the env.
                     self.elements.remove(elem)
                     self.targets_collected +=1
-                    reward = 10
+                    reward += 10
         
         if self.frame_iteration > 500:
             done = True
