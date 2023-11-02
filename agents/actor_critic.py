@@ -25,7 +25,7 @@ class Agent:
 
         self.optimizer = torch.optim.SGD(self.model.parameters(), lr=alpha)
         self.loss_fn = ActorCriticLoss()
-
+        self.lr = alpha
         if torch.backends.mps.is_available():
             self.device = "mps"
         elif torch.cuda.is_available():
