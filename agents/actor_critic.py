@@ -13,7 +13,7 @@ class ActorCriticLoss(torch.nn.Module):
         return loss.mean()
     
 class Agent:
-    def __init__(self, obs_space=6, alpha=0.0003, gamma=0.99, epsilon=0.1, n_actions=2, eval_mode=False) -> None:
+    def __init__(self, obs_space=6, alpha=0.0003, gamma=0.99, epsilon=0.2, n_actions=2, eval_mode=False) -> None:
         self.gamma = gamma
         self.n_actions = n_actions
         self.action = None

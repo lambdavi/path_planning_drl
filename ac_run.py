@@ -5,7 +5,7 @@ from stable_baselines3.common.env_checker import check_env
 from agents.actor_critic import Agent
 env = RoverEnvV2()
 agent = Agent(3,n_actions=8)
-N_GAMES = 100
+N_GAMES = 1000
 load_checkpoint = False
 for i in range(N_GAMES):
     observation = env.reset()[0]
