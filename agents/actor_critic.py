@@ -43,7 +43,7 @@ class Agent:
             # Explore: choose a random action
             action = random.choice(self.action_space)
             action = torch.tensor([action])
-            self.action = action
+            self.action = action.to(self.device)
         else:
             # Exploit: choose the action with the highest estimated value
             state = torch.tensor(np.array([observation]), device =self.device, dtype=torch.float32)
