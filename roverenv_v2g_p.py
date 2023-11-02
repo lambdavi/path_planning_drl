@@ -70,8 +70,8 @@ class RoverEnvV2(Env):
         self.print_path = print_path
         # Define a 2-D observation space
         self.observation_shape = (3, 600, 800)
-        self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float32), 
-                                            high = np.ones(self.observation_shape, dtype=np.float32),
+        self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float16), 
+                                            high = np.ones(self.observation_shape, dtype=np.float16),
                                             dtype = np.float32)
     
         
@@ -243,6 +243,7 @@ class RoverEnvV2(Env):
         
         if self.frame_iteration > 1000:
             done = True
+            reward -= 10
         
         # Increment the episodic return
         self.ep_return += 1

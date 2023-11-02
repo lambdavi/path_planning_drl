@@ -48,7 +48,7 @@ class Agent:
             self.action = action.to(self.device)
         else:
             # Exploit: choose the action with the highest estimated value
-            state = torch.tensor(np.array([observation]), device =self.device, dtype=torch.float32)
+            state = torch.tensor(np.array([observation]), device =self.device, dtype=torch.float16)
             with torch.no_grad():
                 _, probs = self.model(state)
             action_probabilities = torch.distributions.Categorical(probs=probs)
@@ -75,9 +75,9 @@ class Agent:
             State_: next state
             Done: is it done learning?
         """
-        state = torch.tensor(np.array([state]), dtype=torch.float32, device =self.device)
-        state_ = torch.tensor(np.array([state_]), dtype=torch.float32, device =self.device )
-        reward = torch.tensor(reward, dtype=torch.float32)
+        state = torch.tensor(np.array([state]), dtype=torch.float16, device =self.device)
+        state_ = torch.tensor(np.array([state_]), dtype=torch.float16, device =self.device )
+        reward = torch.tensor(reward, dtype=torch.float16)
         
         state_value, probs = self.model(state)
         state_value_, _ = self.model(state_)
