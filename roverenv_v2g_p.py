@@ -62,12 +62,12 @@ class Aruco(Point):
         self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
     
 class RoverEnvV2(Env):
-    def __init__(self):
+    def __init__(self, print_path=False):
         super(RoverEnvV2, self).__init__()
 
         self.frame_iteration = 0
         self.drone_path = []  # Initialize an empty list to store the drone's path
-
+        self.print_path = print_path
         # Define a 2-D observation space
         self.observation_shape = (3, 600, 800)
         self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float32), 
@@ -94,7 +94,8 @@ class RoverEnvV2(Env):
     def draw_elements_on_canvas(self):
         # Init the canvas 
         self.canvas = np.ones(self.observation_shape) * 1
-        self.draw_drone_path()  # Draw the drone's path on the canvas
+        if self.print_path:
+            self.draw_drone_path()  # Draw the drone's path on the canvas
 
         # Draw the heliopter on canvas
         for elem in self.elements:
@@ -213,7 +214,8 @@ class RoverEnvV2(Env):
 
         # Calculate the drone's current cell coordinates
         current_cell = (self.drone.x // self.drone.icon_w, self.drone.y // self.drone.icon_h)
-        self.drone_path.append(current_cell)  # Append the current cell to the drone's path
+        if self.print_path:
+            self.drone_path.append(current_cell)  # Append the current cell to the drone's path
 
         if current_cell not in self.visited:
             # The drone has visited a new cell
