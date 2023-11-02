@@ -191,7 +191,7 @@ class RoverEnvV2(Env):
         # Assert that it is a valid action 
         assert self.action_space.contains(action), "Invalid Action"
 
-        #reward = -0.01
+        reward = 0
 
         # apply the action to the drone
         if action == 0:
