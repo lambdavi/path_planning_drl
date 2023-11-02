@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from stable_baselines3 import DQN
 from stable_baselines3.common.env_checker import check_env
 from agents.actor_critic import Agent
+import wandb
+
 env = RoverEnvV2()
 agent = Agent(3,n_actions=8)
 N_GAMES = 1000
@@ -22,4 +24,4 @@ for i in range(N_GAMES):
     print(f"Episode: {i}, Reward: {score}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
     # Render the game
 
-env.close()
+#env.close()

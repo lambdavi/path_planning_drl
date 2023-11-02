@@ -214,7 +214,7 @@ class RoverEnvV2(Env):
         if current_cell not in self.visited:
             # The drone has visited a new cell
             self.visited.add(current_cell)
-            reward = 0.1  # Assign a reward for visiting a new cell
+            reward += 0.1  # Assign a reward for visiting a new cell
             self.cells_visited+=1
 
         # For elements in the Ev
@@ -224,7 +224,7 @@ class RoverEnvV2(Env):
                 if self.has_collided(self.drone, elem):
                     # Conclude the episode and remove the drone from the Env.
                     done = True
-                    reward = -10
+                    reward -= 20
                     self.elements.remove(self.drone)
 
             if isinstance(elem, Aruco):
@@ -235,7 +235,7 @@ class RoverEnvV2(Env):
                     self.targets_collected +=1
                     reward = 10
         
-        if self.frame_iteration > 200:
+        if self.frame_iteration > 500:
             done = True
         
         # Increment the episodic return

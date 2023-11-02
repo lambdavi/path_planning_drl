@@ -12,15 +12,19 @@ class ActorCriticNetwork(nn.Module):
 
         # Define a simple CNN architecture
         self.features = nn.Sequential(
-            nn.Conv2d(obs_space, 8, kernel_size=5, stride=1),
+            nn.Conv2d(obs_space, 16, kernel_size=3, stride=1),
             nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(16, 32, kernel_size=3, stride=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2, stride=2)
         )
         self.transforms = transforms.Compose([
             transforms.Resize((224,224))
         ])
         # Define fully connected layers for value and policy networks
-        self.val_fc = nn.Linear(387200,1)  # Adjust the input size (128 * 5 * 5) according to your observation space
-        self.pol_fc = nn.Linear(387200, n_actions)
+        self.val_fc = nn.Linear(93312,1)  # Adjust the input size (128 * 5 * 5) according to your observation space
+        self.pol_fc = nn.Linear(93312, n_actions)
 
     def forward(self, x):
         x = x.float()  # Ensure input is a float tensor
