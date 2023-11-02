@@ -191,7 +191,7 @@ class RoverEnvV2(Env):
         # Assert that it is a valid action 
         assert self.action_space.contains(action), "Invalid Action"
 
-        reward = -0.05    
+        #reward = -0.01
 
         # apply the action to the drone
         if action == 0:
@@ -239,9 +239,9 @@ class RoverEnvV2(Env):
                     # Remove the fuel tank from the env.
                     self.elements.remove(elem)
                     self.targets_collected +=1
-                    reward += 10
+                    reward += 20
         
-        if self.frame_iteration > 500:
+        if self.frame_iteration > 1000:
             done = True
         
         # Increment the episodic return

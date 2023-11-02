@@ -23,7 +23,7 @@ class Agent:
         self.epsilon_decay = epsilon_decay
         self.model = ActorCriticNetwork(n_actions=n_actions, obs_space = obs_space)
 
-        self.optimizer = torch.optim.SGD(self.model.parameters(), lr=alpha)
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=alpha)
         self.loss_fn = ActorCriticLoss()
         self.lr = alpha
         if torch.backends.mps.is_available():

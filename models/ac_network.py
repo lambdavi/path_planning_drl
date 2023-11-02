@@ -14,10 +14,10 @@ class ActorCriticNetwork(nn.Module):
         self.features = nn.Sequential(
             nn.Conv2d(obs_space, 16, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.AvgPool2d(kernel_size=2, stride=2),
             nn.Conv2d(16, 32, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2, stride=2)
+            nn.AvgPool2d(kernel_size=2, stride=2)
         )
         self.transforms = transforms.Compose([
             transforms.Resize((224,224), antialias=None)
