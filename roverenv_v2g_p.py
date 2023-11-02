@@ -48,7 +48,7 @@ class Wall(Point):
 class Drone(Point):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Drone, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/mars-rover.png") / 255.0
+        self.icon = cv2.imread("media/drone.png") / 255.0
         self.icon_w = 32
         self.icon_h = 32
         self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
@@ -191,7 +191,7 @@ class RoverEnvV2(Env):
         # Assert that it is a valid action 
         assert self.action_space.contains(action), "Invalid Action"
 
-        reward = 0    
+        reward = -0.05    
 
         # apply the action to the drone
         if action == 0:
@@ -220,7 +220,7 @@ class RoverEnvV2(Env):
         if current_cell not in self.visited:
             # The drone has visited a new cell
             self.visited.add(current_cell)
-            reward += 0.1  # Assign a reward for visiting a new cell
+            #reward += 0.05  # Assign a reward for visiting a new cell
             self.cells_visited+=1
 
         # For elements in the Ev
