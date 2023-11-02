@@ -36,7 +36,7 @@ for i in range(N_GAMES):
         #env.render()
     score_history.append(score)
     avg_rew = np.mean(score_history[-20:])
-    print(f"Episode: {i}, Avg Reward: {avg_rew}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
+    print(f"Episode: {i}, Instant_reward: {score}, Avg Reward: {avg_rew}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
     if LOG_ON:
             wandb.log({"Instant_reward": score, "Avg_reward": avg_rew, "Collected": env.targets_collected, "Visited":env.cells_visited})
     # Render the game
