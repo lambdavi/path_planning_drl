@@ -5,25 +5,41 @@ from stable_baselines3.common.env_checker import check_env
 from agents.actor_critic import Agent
 import numpy as np
 import wandb
+from wandb.integration.sb3 import WandbCallback
+
 env = RoverEnvV2()
 agent = Agent(3,n_actions=8)
 N_GAMES = 1000
 load_checkpoint = False
 score_history = []
 LOG_ON = True
+
 model = DQN(env=env, policy="CnnPolicy", buffer_size=100, policy_kwargs=dict(normalize_images=False))
-model.learn(100000, progress_bar=True)
-exit(1)
+# Train the agent
 if LOG_ON:
     wandb.login()
     run = wandb.init(
         # Set the project where this run will be logged
         project="a2c-test",
+        monitor_gym=True,
         # Track hyperparameters and run metadata
         config={
             "learning_rate": agent.lr,
             "epochs": N_GAMES,
         })
+model.learn(
+    total_timesteps=100000,
+    callback=[
+        WandbCallback(
+            gradient_save_freq=10000,
+            model_save_path=f"models/{run.id}",
+            model_save_freq=10000,
+            verbose=2,
+        ),
+    ],
+)
+exit(1)
+
 for i in range(N_GAMES):
     observation = env.reset()[0]
     score=0
