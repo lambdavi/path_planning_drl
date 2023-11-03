@@ -18,7 +18,7 @@ LOG_ON = True
 log_dir = "tmp/"
 env = Monitor(env, log_dir)
 
-model = PPO(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+model = DQN(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=1000)
 
 # Train the agent
 if LOG_ON:
