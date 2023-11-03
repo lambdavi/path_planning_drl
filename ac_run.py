@@ -1,6 +1,6 @@
 from roverenv_v2g_p import RoverEnvV2
 import matplotlib.pyplot as plt
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, A2C
 from stable_baselines3.common.env_checker import check_env
 from agents.actor_critic import Agent
 import numpy as np
@@ -18,7 +18,7 @@ LOG_ON = True
 log_dir = "tmp/"
 env = Monitor(env, log_dir)
 
-model = DQN(env=env, policy="CnnPolicy", buffer_size=100, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+model = A2C(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
 
 # Train the agent
 if LOG_ON:
@@ -40,7 +40,7 @@ checkpoint_callback = CheckpointCallback(
     save_freq=100000, save_path=log_dir, name_prefix="ddq_"
 )
 model.learn(
-    total_timesteps=1000000,
+    total_timesteps=10000,
     callback=[
         checkpoint_callback,
         WandbCallback(
