@@ -18,7 +18,7 @@ LOG_ON = True
 log_dir = "tmp/"
 env = Monitor(env, log_dir)
 
-model = DQN(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=1000, learning_starts=10000)
+model = DQN(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=1000)
 
 # Train the agent
 if LOG_ON:
@@ -27,6 +27,7 @@ if LOG_ON:
         # Set the project where this run will be logged
         project="a2c-test",
         monitor_gym=True,
+        sync_tensorboard=True,
         # Track hyperparameters and run metadata
         config={
             "learning_rate": agent.lr,
@@ -34,9 +35,14 @@ if LOG_ON:
             "collected": env.get_wrapper_attr('targets_collected'),
             "epochs": N_GAMES,
         })
+# Create checkpoint callback
+checkpoint_callback = CheckpointCallback(
+    save_freq=100000, save_path=log_dir, name_prefix="ddq_"
+)
 model.learn(
     total_timesteps=100000,
     callback=[
+        checkpoint_callback,
         WandbCallback(
             gradient_save_freq=10000,
             model_save_path=f"models/{run.id}",
