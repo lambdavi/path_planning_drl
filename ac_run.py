@@ -1,7 +1,6 @@
-from roverenv_v2g_p import RoverEnvV2
+from roverenv_v2g_fin import RoverEnvV2
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN, A2C, PPO
-from stable_baselines3.common.env_checker import check_env
 from agents.actor_critic import Agent
 import numpy as np
 import wandb
@@ -13,27 +12,30 @@ from argparse import ArgumentParser
 # ARGUMENT PARSER
 parser = ArgumentParser()
 parser.add_argument('--algo', type=str, default='dqn')
+parser.add_argument('--obs', type=str, default='image')
 parser.add_argument('--sb', action='store_true')
-
-
 args = parser.parse_args()
 
-env = RoverEnvV2()
+OBS_TYPE = args.obs
+env = RoverEnvV2(obs_type=OBS_TYPE)
 agent = Agent(3,n_actions=8)
 N_GAMES = 1000
 load_checkpoint = False
 score_history = []
 LOG_ON = True
+
 print(args)
 if args.sb:
     log_dir = "tmp/"
     env = Monitor(env, log_dir)
+    policy = "CnnPolicy" if OBS_TYPE == "image" else "MlpPolicy"
+    print(policy)
     if args.algo == "dqn":
-        model = DQN(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=1000)
+        model = DQN(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=100)
     elif args.algo == "a2c":
-        model = A2C(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+        model = A2C(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
     else:
-        model = PPO(env=env, policy="CnnPolicy", policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+        model = PPO(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
         
     # Train the agent
     if LOG_ON:
@@ -55,7 +57,7 @@ if args.sb:
         save_freq=100000, save_path=log_dir, name_prefix="ddq_"
     )
     model.learn(
-        total_timesteps=50000,
+        total_timesteps=1000000 if OBS_TYPE=="linear" else 50000,
         callback=[
             checkpoint_callback,
             WandbCallback(
