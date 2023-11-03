@@ -8,11 +8,13 @@ import wandb
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.callbacks import CheckpointCallback
 from wandb.integration.sb3 import WandbCallback
-import argparse
+from argparse import ArgumentParser
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--sb', type=bool, default=False)
-parser.add_argument('--algo', type="str", default="dqn")
+# ARGUMENT PARSER
+parser = ArgumentParser()
+parser.add_argument('--algo', type=str, default='dqn')
+parser.add_argument('--sb', action='store_true')
+
 
 args = parser.parse_args()
 
@@ -22,7 +24,7 @@ N_GAMES = 1000
 load_checkpoint = False
 score_history = []
 LOG_ON = True
-
+print(args)
 if args.sb:
     log_dir = "tmp/"
     env = Monitor(env, log_dir)
@@ -53,7 +55,7 @@ if args.sb:
         save_freq=100000, save_path=log_dir, name_prefix="ddq_"
     )
     model.learn(
-        total_timesteps=100000,
+        total_timesteps=50000,
         callback=[
             checkpoint_callback,
             WandbCallback(
