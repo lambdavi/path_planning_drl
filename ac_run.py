@@ -40,7 +40,7 @@ checkpoint_callback = CheckpointCallback(
     save_freq=100000, save_path=log_dir, name_prefix="ddq_"
 )
 model.learn(
-    total_timesteps=10000,
+    total_timesteps=100000,
     callback=[
         checkpoint_callback,
         WandbCallback(
