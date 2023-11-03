@@ -220,7 +220,7 @@ class RoverEnvV2(Env):
         if current_cell not in self.visited:
             # The drone has visited a new cell
             self.visited.add(current_cell)
-            #reward += 0.05  # Assign a reward for visiting a new cell
+            reward += 0.1/self.frame_iteration  # Assign a reward for visiting a new cell
             self.cells_visited+=1
 
         # For elements in the Ev
@@ -243,7 +243,7 @@ class RoverEnvV2(Env):
         
         if self.frame_iteration > 1000:
             done = True
-            reward -= 10
+            reward -= 2
         
         # Increment the episodic return
         self.ep_return += 1

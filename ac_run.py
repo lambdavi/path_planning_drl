@@ -5,6 +5,8 @@ from stable_baselines3.common.env_checker import check_env
 from agents.actor_critic import Agent
 import numpy as np
 import wandb
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.callbacks import CheckpointCallback
 from wandb.integration.sb3 import WandbCallback
 
 env = RoverEnvV2()
@@ -13,8 +15,11 @@ N_GAMES = 1000
 load_checkpoint = False
 score_history = []
 LOG_ON = True
+log_dir = "tmp/"
+env = Monitor(env, log_dir)
 
-model = DQN(env=env, policy="CnnPolicy", buffer_size=100, policy_kwargs=dict(normalize_images=False))
+model = DQN(env=env, policy="CnnPolicy", buffer_size=100, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+
 # Train the agent
 if LOG_ON:
     wandb.login()
@@ -22,21 +27,31 @@ if LOG_ON:
         # Set the project where this run will be logged
         project="a2c-test",
         monitor_gym=True,
+        sync_tensorboard=True,
         # Track hyperparameters and run metadata
         config={
             "learning_rate": agent.lr,
+            "visited": env.get_wrapper_attr('cells_visited'),
+            "collected": env.get_wrapper_attr('targets_collected'),
             "epochs": N_GAMES,
         })
+# Create checkpoint callback
+checkpoint_callback = CheckpointCallback(
+    save_freq=100000, save_path=log_dir, name_prefix="ddq_"
+)
 model.learn(
-    total_timesteps=100000,
+    total_timesteps=1000000,
     callback=[
+        checkpoint_callback,
         WandbCallback(
             gradient_save_freq=10000,
             model_save_path=f"models/{run.id}",
             model_save_freq=10000,
+            log="all",
             verbose=2,
         ),
     ],
+    progress_bar=True
 )
 exit(1)
 
