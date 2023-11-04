@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import PIL.Image as Image
 import gymnasium as gym
 import random
-
+import math
 from gymnasium import Env, spaces
 import time
 
@@ -57,48 +57,64 @@ class Aruco(Point):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Aruco, self).__init__(name, x_max, x_min, y_max, y_min)
         self.icon = cv2.imread("media/aruco.png") / 255.0
+        self.found = 0
         self.icon_w = 32
         self.icon_h = 32
         self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
     
 class RoverEnvV2(Env):
-    def __init__(self, print_path=False):
+    def __init__(self, obs_type="cnn", print_path=False):
         super(RoverEnvV2, self).__init__()
-
+        self.obs_type = obs_type
+        self.max_targets = 4
         self.frame_iteration = 0
         self.drone_path = []  # Initialize an empty list to store the drone's path
         self.print_path = print_path
-        # Define a 2-D observation space
-        self.observation_shape = (3, 600, 800)
-        self.observation_space = spaces.Box(low = np.zeros(self.observation_shape, dtype=np.float16), 
-                                            high = np.ones(self.observation_shape, dtype=np.float16),
-                                            dtype = np.float32)
-    
-        
+        self.img_size = (3, 600, 800)
+
+        if obs_type == 'image':
+            # Define the observation space for image-based observations
+            self.observation_shape = self.img_size
+            self.observation_space = spaces.Box(
+                low=np.zeros(self.observation_shape, dtype=np.float16),
+                high=np.ones(self.observation_shape, dtype=np.float16),
+                dtype=np.float32
+            )
+        elif obs_type == 'linear':
+            # Define the observation space for linear observations
+            self.observation_shape = (self.max_targets*2+1,)  # Adjust the shape as needed
+            self.observation_space = spaces.Box(
+                low=np.zeros(self.observation_shape, dtype=np.float16),
+                high=np.ones(self.observation_shape, dtype=np.float16),
+                dtype=np.float32
+            )
         # Define an action space ranging from 0 to 7
         self.action_space = spaces.Discrete(8,)
                         
         # Create a canvas to render the environment images upon 
-        self.canvas = np.ones(self.observation_shape) * 1
+        self.canvas = np.ones(self.img_size) * 1
         self.cells_visited = 0
         self.targets_collected = 0
         self.elements = []
         self.visited = set()  # Initialize an empty set to store visited cell coordinates
 
-        
-        self.y_min = int (self.observation_shape[1] * 0.1)
-        self.x_min = 0
-        self.y_max = int (self.observation_shape[1] * 0.9)
-        self.x_max = self.observation_shape[2]
-        
+        print(self.canvas.shape)
+        self.y_min = int(self.img_size[1] * 0.1)
+        self.x_min = int(self.img_size[2] * 0.1)
+        self.y_max = int(self.img_size[1] * 0.9)
+        self.x_max = int(self.img_size[2] * 0.9)
+    
     def draw_elements_on_canvas(self):
         # Init the canvas 
-        self.canvas = np.ones(self.observation_shape) * 1
+        self.canvas = np.ones(self.img_size) * 1
         if self.print_path:
             self.draw_drone_path()  # Draw the drone's path on the canvas
 
         # Draw the heliopter on canvas
         for elem in self.elements:
+            if isinstance(elem, Aruco):
+                if elem.found == 1:
+                    continue
             elem_shape = elem.icon.shape
             x,y = elem.x, elem.y
             self.canvas[:, y:y + elem_shape[1], x:x + elem_shape[0]] = elem.icon.transpose((2, 0, 1))
@@ -118,10 +134,10 @@ class RoverEnvV2(Env):
         self.ep_return  = 0
         self.frame_iteration = 0
 
-        # Determine a place to intialise the drone in
-        x = random.randrange(int(self.observation_shape[1] * 0.05), int(self.observation_shape[1] * 0.9))
-        y = random.randrange(int(self.observation_shape[2] * 0.05), int(self.observation_shape[2] * 0.9))
-        
+            # Determine a place to initialize the drone for image observations
+        x = random.randrange(int(self.img_size[1] * 0.05), int(self.img_size[1] * 0.9))
+        y = random.randrange(int(self.img_size[2] * 0.05), int(self.img_size[2] * 0.9))
+
         # Intialise the drone
         self.drone = Drone("drone", self.x_max, self.x_min, self.y_max, self.y_min)
         self.drone.set_position(x,y)
@@ -133,13 +149,33 @@ class RoverEnvV2(Env):
         self._place_targets()
 
         # Reset the Canvas 
-        self.canvas = np.ones(self.observation_shape) * 1
+        self.canvas = np.ones(self.img_size) * 1
 
-        # Draw elements on the canvas
+        # Return observations based on the selected "obs_type"
         self.draw_elements_on_canvas()
+        if self.obs_type == 'image':
+            return self.canvas, {}
+        elif self.obs_type == 'linear':
+            return self.calculate_linear_observations(), {}
+        
+    def calculate_linear_observations(self):
+        drone_x, drone_y = self.drone.get_position()
+        observations = []
+        remaining = 0
+        for elem in self.elements:
+            if isinstance(elem, Aruco):
+                if elem.found == 0:
+                    target_x, target_y = elem.get_position()
+                    angle = math.atan2(target_y - drone_y, target_x - drone_x)
+                    distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
+                    observations.append(angle)
+                    observations.append(distance)
+                    remaining+=1
+                else:
+                    observations.append(0)
+                    observations.append(0)        
 
-        # return the observation
-        return self.canvas, {}
+        return np.array(observations+[remaining], dtype=np.float32)
     
     def _place_walls(self, n=5):
         for i in range(n):
@@ -235,9 +271,9 @@ class RoverEnvV2(Env):
                     break
             elif isinstance(elem, Aruco):
                 # If the fuel tank has collided with the drone.
-                if self.has_collided(self.drone, elem):
+                if self.has_collided(self.drone, elem) and elem.found == 0:
                     # Remove the fuel tank from the env.
-                    self.elements.remove(elem)
+                    elem.found=1
                     self.targets_collected +=1
                     reward += 1
         
@@ -248,10 +284,15 @@ class RoverEnvV2(Env):
         # Increment the episodic return
         self.ep_return += 1
 
-        # Draw elements on the canvas
+        # Update observations based on the selected "obs_type"
         self.draw_elements_on_canvas()
 
-        return self.canvas, reward, done, False, {}
+        if self.obs_type == 'image':
+            observations = self.canvas
+        elif self.obs_type == 'linear':
+            observations = self.calculate_linear_observations()
+
+        return observations, reward, done, False, {}
     
     def draw_drone_path(self):
         for cell in self.drone_path:

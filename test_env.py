@@ -1,8 +1,8 @@
-from roverenv_v2g import RoverEnvV2
+from roverenv_v2g_fin import RoverEnvV2
 import matplotlib.pyplot as plt
-from stable_baselines3 import DQN
+from stable_baselines3 import DQN, A2C
 from stable_baselines3.common.env_checker import check_env
-
+from stable_baselines3.common.vec_env import VecEnvWrapper
 
 """
 # LATER WE WILL USE STABLEBASELINES
@@ -12,12 +12,20 @@ model.learn(total_timesteps=10000, log_interval=4)
 model.save("dqn_roverenv")
 """
 
-env = RoverEnvV2()
+vec_env = RoverEnvV2(obs_type='linear')
 
-obs = env.reset()
+model = A2C.load("models/e5ts0197/model")
 
-
+obs = vec_env.reset()[0]
 while True:
+    action, _states = model.predict(obs)
+    obs, rewards, dones, info, _ = vec_env.step(action)
+    vec_env.render()
+    if dones:
+        obs = vec_env.reset()[0]
+
+
+"""while True:
     # Take a random action
     action = env.action_space.sample()
     obs, reward, done, truncated, info = env.step(action)
@@ -28,4 +36,4 @@ while True:
     if done == True:
         break
 
-env.close()
+env.close()"""

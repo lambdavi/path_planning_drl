@@ -48,8 +48,8 @@ if args.sb:
             # Track hyperparameters and run metadata
             config={
                 "learning_rate": agent.lr,
-                "visited": env.get_wrapper_attr('cells_visited'),
-                "collected": env.get_wrapper_attr('targets_collected'),
+                "visited": env.cells_visited,
+                "collected": env.targets_collected,
                 "epochs": N_GAMES,
             })
     # Create checkpoint callback
