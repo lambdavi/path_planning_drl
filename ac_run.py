@@ -33,7 +33,7 @@ if args.sb:
     if args.algo == "dqn":
         model = DQN(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=100)
     elif args.algo == "a2c":
-        model = A2C(env=env, policy=policy, learning_rate=0.0001, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+        model = A2C(env=env, policy=policy, learning_rate=0.005, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
     else:
         model = PPO(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
         
