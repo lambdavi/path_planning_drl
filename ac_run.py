@@ -57,7 +57,7 @@ if args.sb:
         save_freq=100000, save_path=log_dir, name_prefix="ddq_"
     )
     model.learn(
-        total_timesteps=1000000 if OBS_TYPE=="linear" else 50000,
+        total_timesteps=1000000 if OBS_TYPE=="linear" else 100000,
         callback=[
             checkpoint_callback,
             WandbCallback(
