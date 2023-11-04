@@ -192,24 +192,24 @@ class RoverEnvV2(Env):
         assert self.action_space.contains(action), "Invalid Action"
 
         reward = 0
-
+        step_size = 5
         # apply the action to the drone
         if action == 0:
-            self.drone.move(0,5)
+            self.drone.move(0,step_size)
         elif action == 1:
-            self.drone.move(-5,0)
+            self.drone.move(-step_size,0)
         elif action == 2:
-            self.drone.move(0,-5)
+            self.drone.move(0,-step_size)
         elif action == 3:
-            self.drone.move(5,0)
+            self.drone.move(step_size,0)
         elif action == 4:
-            self.drone.move(-5,5)
+            self.drone.move(-step_size,step_size)
         elif action == 5:
-            self.drone.move(-5,-5)
+            self.drone.move(-step_size,-step_size)
         elif action == 6:
-            self.drone.move(5,-5)
+            self.drone.move(step_size,-step_size)
         elif action == 7:
-            self.drone.move(5,5)
+            self.drone.move(step_size,step_size)
 
 
         # Calculate the drone's current cell coordinates
@@ -240,6 +240,11 @@ class RoverEnvV2(Env):
                     self.elements.remove(elem)
                     self.targets_collected +=1
                     reward += 1
+                else:
+                    target_x, target_y = elem.get_position()
+                    distance = np.sqrt((target_x - self.drone.x) ** 2 + (target_y - self.drone.y) ** 2)
+                    # Define a proximity reward function (you can adjust the scaling factor)
+                    reward += 0.1 / distance  # Adjust the scaling factor as needed
         
         if self.frame_iteration > 1000:
             done = True
