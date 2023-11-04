@@ -18,7 +18,7 @@ model = A2C.load("models/e5ts0197/model")
 
 obs = vec_env.reset()[0]
 while True:
-    action, _states = model.predict(obs)
+    action, _states = model.predict(obs, deterministic=True)
     obs, rewards, dones, info, _ = vec_env.step(action)
     vec_env.render()
     if dones:
