@@ -267,7 +267,7 @@ class RoverEnvV2(Env):
                 if self.has_collided(self.drone, elem):
                     # Conclude the episode and remove the drone from the Env.
                     done = True
-                    reward -= 1
+                    reward -= 10
                     self.elements.remove(self.drone)
                     break
             elif isinstance(elem, Aruco):
@@ -276,7 +276,7 @@ class RoverEnvV2(Env):
                     # Remove the fuel tank from the env.
                     elem.found=1
                     self.targets_collected +=1
-                    reward += 1
+                    reward += 10
                 else:
                     target_x, target_y = elem.get_position()
                     distance = np.sqrt((target_x - self.drone.x) ** 2 + (target_y - self.drone.y) ** 2)

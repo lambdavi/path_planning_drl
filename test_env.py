@@ -14,15 +14,18 @@ model.save("dqn_roverenv")
 
 vec_env = RoverEnvV2(obs_type='linear')
 
-model = A2C.load("models/e5ts0197/model")
+model = A2C.load("models/9u32jl4c/model")
 
-obs = vec_env.reset()[0]
+obs = vec_env.reset()
+print(obs[0].shape)
 while True:
-    action, _states = model.predict(obs, deterministic=True)
+    action, _states = model.predict(obs[0], deterministic=True)
+    print(action)
     obs, rewards, dones, info, _ = vec_env.step(action)
+    obs = [obs]
     vec_env.render()
     if dones:
-        obs = vec_env.reset()[0]
+        obs = vec_env.reset()
 
 
 """while True:
