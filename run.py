@@ -69,7 +69,7 @@ if args.sb:
                 model_save_path=f"models/{run.id}",
                 model_save_freq=10000,
                 log="all",
-                verbose=2,
+                verbose=0,
             ),
         ],
         log_interval=4,

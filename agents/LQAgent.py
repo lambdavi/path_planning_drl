@@ -1,7 +1,7 @@
 from agents.general import GeneralAgent
 import random
 import torch
-from networks.linearDQ import LinearDQN
+from networks.DQ import LinearDQN
 import os
 class LinearDQN_Agent(GeneralAgent):
     def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True, load_path="", sched=False) -> None:
