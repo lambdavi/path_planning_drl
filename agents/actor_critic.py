@@ -1,5 +1,5 @@
 import torch
-from models.ac_network import ActorCriticNetwork
+from networks.ac_network import ActorCriticNetwork, ActorCriticNetworkCNN
 import numpy as np
 import random
 class ActorCriticLoss(torch.nn.Module):
@@ -13,7 +13,7 @@ class ActorCriticLoss(torch.nn.Module):
         return loss.mean()
     
 class Agent:
-    def __init__(self, obs_space=6, alpha=0.0003, gamma=0.99, epsilon_initial=0.9, epsilon_min=0.1, epsilon_decay=0.995, n_actions=8, eval_mode=False) -> None:
+    def __init__(self, obs_type="image", obs_space=6, alpha=0.0003, gamma=0.99, epsilon_initial=0.9, epsilon_min=0.1, epsilon_decay=0.995, n_actions=8, eval_mode=False) -> None:
         self.gamma = gamma
         self.n_actions = n_actions
         self.action = None
@@ -21,8 +21,10 @@ class Agent:
         self.epsilon = epsilon_initial
         self.epsilon_min = epsilon_min
         self.epsilon_decay = epsilon_decay
-        self.model = ActorCriticNetwork(n_actions=n_actions, obs_space = obs_space)
-
+        if obs_type == "image":
+            self.model = ActorCriticNetworkCNN(n_actions=n_actions, obs_space = obs_space)
+        else:
+            self.model = ActorCriticNetwork(n_actions=n_actions, obs_space = 9)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=alpha)
         self.loss_fn = ActorCriticLoss()
         self.lr = alpha

@@ -20,7 +20,6 @@ obs = vec_env.reset()
 print(obs[0].shape)
 while True:
     action, _states = model.predict(obs[0], deterministic=True)
-    print(action)
     obs, rewards, dones, info, _ = vec_env.step(action)
     obs = [obs]
     vec_env.render()

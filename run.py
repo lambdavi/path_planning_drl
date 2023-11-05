@@ -1,7 +1,9 @@
 from roverenv_v2g_fin import RoverEnvV2
+from roverenv_easy import RoverEnvV2 as RoverEnvV2E
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN, A2C, PPO
 from agents.actor_critic import Agent
+from agents.LQAgent import LinearDQN_Agent
 import numpy as np
 import wandb
 from stable_baselines3.common.monitor import Monitor
@@ -14,11 +16,15 @@ parser = ArgumentParser()
 parser.add_argument('--algo', type=str, default='dqn')
 parser.add_argument('--obs', type=str, default='image')
 parser.add_argument('--sb', action='store_true')
+parser.add_argument('--easy', action='store_true')
+
 args = parser.parse_args()
 
 OBS_TYPE = args.obs
-env = RoverEnvV2(obs_type=OBS_TYPE)
-agent = Agent(3,n_actions=8)
+if args.easy:
+    env = RoverEnvV2E(obs_type=args.obs)
+else:
+    env = RoverEnvV2(obs_type=OBS_TYPE)
 N_GAMES = 1000
 load_checkpoint = False
 score_history = []
@@ -47,7 +53,6 @@ if args.sb:
             sync_tensorboard=True,
             # Track hyperparameters and run metadata
             config={
-                "learning_rate": agent.lr,
                 "visited": env.unwrapped.cells_visited,
                 "collected": env.unwrapped.targets_collected,
                 "epochs": N_GAMES,
@@ -72,6 +77,15 @@ if args.sb:
         progress_bar=True
     )
 else:
+    if args.algo == "dqn":
+        if args.obs == "linear":
+            agent = LinearDQN_Agent(8)
+        else:
+            pass # TODO: DQN CNN
+    else:
+        if args.obs == "image":
+            agent = Agent(3,n_actions=8, obs_type = args.obs)
+
     for i in range(N_GAMES):
         observation = env.reset()[0]
         score=0

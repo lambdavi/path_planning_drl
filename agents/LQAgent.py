@@ -1,7 +1,7 @@
 from agents.general import GeneralAgent
 import random
 import torch
-from models.linearDQ import LinearDQN
+from networks.linearDQ import LinearDQN
 import os
 class LinearDQN_Agent(GeneralAgent):
     def __init__(self, n_actions=8, lr=0.001, bs=1000, train=True, load_path="", sched=False) -> None:
@@ -10,7 +10,7 @@ class LinearDQN_Agent(GeneralAgent):
         self.bs = bs
         self.eps = None
         self.gamma = 0.9
-        self.model = LinearDQN(40, 256, 128, n_actions)
+        self.model = LinearDQN(9, 256, 128, n_actions)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = torch.nn.HuberLoss()
         self.train = train
