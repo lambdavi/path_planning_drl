@@ -1,3 +1,6 @@
 __pycache__
 best_model
 wandb
+tmp
+models/
+old_envs/
