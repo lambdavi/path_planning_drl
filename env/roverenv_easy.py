@@ -1,66 +1,11 @@
 import numpy as np 
 import cv2 
-import matplotlib.pyplot as plt
-import PIL.Image as Image
-import gymnasium as gym
 import random
 import math
 from gymnasium import Env, spaces
-import time
+from elements import *
 
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
-
-class Point(object):
-    def __init__(self, name, x_max, x_min, y_max, y_min):
-        self.x = 0
-        self.y = 0
-        self.x_min = x_min
-        self.x_max = x_max
-        self.y_min = y_min
-        self.y_max = y_max
-        self.name = name
-    
-    def set_position(self, x, y):
-        self.x = self.clamp(x, self.x_min, self.x_max - self.icon_w)
-        self.y = self.clamp(y, self.y_min, self.y_max - self.icon_h)
-    
-    def get_position(self):
-        return (self.x, self.y)
-    
-    def move(self, del_x, del_y):
-        self.x += del_x
-        self.y += del_y
-        
-        self.x = self.clamp(self.x, self.x_min, self.x_max - self.icon_w)
-        self.y = self.clamp(self.y, self.y_min, self.y_max - self.icon_h)
-
-    def clamp(self, n, minn, maxn):
-        return max(min(maxn, n), minn)
-    
-class Wall(Point):
-    def __init__(self, name, x_max, x_min, y_max, y_min):
-        super(Wall, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/brick-wall.png") / 255.0
-        self.icon_w = 64
-        self.icon_h = 64
-        self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
-
-class Drone(Point):
-    def __init__(self, name, x_max, x_min, y_max, y_min):
-        super(Drone, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/drone.png") / 255.0
-        self.icon_w = 32
-        self.icon_h = 32
-        self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
-
-class Aruco(Point):
-    def __init__(self, name, x_max, x_min, y_max, y_min):
-        super(Aruco, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/aruco.png") / 255.0
-        self.found = 0
-        self.icon_w = 32
-        self.icon_h = 32
-        self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
     
 class RoverEnvV2(Env):
     def __init__(self, obs_type="cnn", print_path=False):
@@ -78,15 +23,15 @@ class RoverEnvV2(Env):
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
                 high=np.ones(self.observation_shape, dtype=np.float16),
-                dtype=np.float32
+                dtype=np.float16
             )
         elif obs_type == 'linear':
             # Define the observation space for linear observations
-            self.observation_shape = (self.max_targets*2+1,)  # Adjust the shape as needed
+            self.observation_shape = (3,)  # Adjust the shape as needed
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
                 high=np.ones(self.observation_shape, dtype=np.float16),
-                dtype=np.float32
+                dtype=np.float16
             )
         # Define an action space ranging from 0 to 7
         self.action_space = spaces.Discrete(8,)
@@ -160,22 +105,23 @@ class RoverEnvV2(Env):
         
     def calculate_linear_observations(self):
         drone_x, drone_y = self.drone.get_position()
-        observations = []
         remaining = 0
+        ret_obs = []
+        min_dist = 999999
         for elem in self.elements:
             if isinstance(elem, Aruco):
                 if elem.found == 0:
                     target_x, target_y = elem.get_position()
                     angle = math.atan2(target_y - drone_y, target_x - drone_x)
                     distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
-                    observations.append(angle)
-                    observations.append(distance)
-                    remaining+=1
-                else:
-                    observations.append(0)
-                    observations.append(0)        
+                    if distance < min_dist:
+                        min_dist = distance
+                        ret_obs = []
+                        ret_obs.append(angle)
+                        ret_obs.append(distance)
+                    remaining+=1      
 
-        return np.array(observations+[remaining], dtype=np.float32)
+        return np.array(ret_obs+[remaining], dtype=np.float32)
     
     def _place_walls(self, n=5):
         for i in range(n):
@@ -281,7 +227,10 @@ class RoverEnvV2(Env):
                     target_x, target_y = elem.get_position()
                     distance = np.sqrt((target_x - self.drone.x) ** 2 + (target_y - self.drone.y) ** 2)
                     # Define a proximity reward function (you can adjust the scaling factor)
-                    reward += 0.1 / distance  # Adjust the scaling factor as needed
+                    if distance != 0:
+                        reward += 0.1 / distance  # Adjust the scaling factor as needed
+                    else:
+                        reward += 0.1
         
         if self.frame_iteration > 1000:
             done = True
