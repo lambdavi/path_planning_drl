@@ -1,6 +1,5 @@
 from env.roverenv_v2g_fin import RoverEnvV2
 from env.roverenv_easy import RoverEnvV2 as RoverEnvV2E
-import matplotlib.pyplot as plt
 from stable_baselines3 import DQN, A2C, PPO
 from agents.actor_critic import Agent
 from agents.LQAgent import LinearDQN_Agent

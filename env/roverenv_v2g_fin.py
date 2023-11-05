@@ -7,7 +7,7 @@ import random
 import math
 from gymnasium import Env, spaces
 import time
-from elements import *
+from env.elements import *
 
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     

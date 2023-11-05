@@ -3,7 +3,7 @@ import cv2
 import random
 import math
 from gymnasium import Env, spaces
-from elements import *
+from env.elements import *
 
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     
@@ -27,7 +27,7 @@ class RoverEnvV2(Env):
             )
         elif obs_type == 'linear':
             # Define the observation space for linear observations
-            self.observation_shape = (3,)  # Adjust the shape as needed
+            self.observation_shape = (9,)  # Adjust the shape as needed
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
                 high=np.ones(self.observation_shape, dtype=np.float16),
@@ -105,23 +105,20 @@ class RoverEnvV2(Env):
         
     def calculate_linear_observations(self):
         drone_x, drone_y = self.drone.get_position()
+        observations = []
         remaining = 0
-        ret_obs = []
-        min_dist = 999999
-        for elem in self.elements:
-            if isinstance(elem, Aruco):
-                if elem.found == 0:
-                    target_x, target_y = elem.get_position()
-                    angle = math.atan2(target_y - drone_y, target_x - drone_x)
-                    distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
-                    if distance < min_dist:
-                        min_dist = distance
-                        ret_obs = []
-                        ret_obs.append(angle)
-                        ret_obs.append(distance)
-                    remaining+=1      
 
-        return np.array(ret_obs+[remaining], dtype=np.float32)
+        for elem in self.elements:
+            if isinstance(elem, Aruco) and elem.found == 0:
+                target_x, target_y = elem.get_position()
+                angle = math.atan2(target_y - drone_y, target_x - drone_x)
+                distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
+                # Append the direction and distance for each uncollected Aruco target
+                observations.append(angle)
+                observations.append(distance)
+                remaining += 1
+
+        return np.array(observations + [remaining], dtype=np.float32)
     
     def _place_walls(self, n=5):
         for i in range(n):
@@ -175,7 +172,7 @@ class RoverEnvV2(Env):
 
         reward = 0
 
-        step_size = 10
+        step_size = 5
         # apply the action to the drone
         if action == 0:
             self.drone.move(0,step_size)
@@ -223,6 +220,8 @@ class RoverEnvV2(Env):
                     elem.found=1
                     self.targets_collected +=1
                     reward += 1
+                    # Generate new target
+                    self._place_targets(1)
                 else:
                     target_x, target_y = elem.get_position()
                     distance = np.sqrt((target_x - self.drone.x) ** 2 + (target_y - self.drone.y) ** 2)
