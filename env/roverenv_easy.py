@@ -76,7 +76,7 @@ class RoverEnvV2(Env):
         self.ep_return  = 0
         self.frame_iteration = 0
 
-            # Determine a place to initialize the drone for image observations
+        # Determine a place to initialize the drone for image observations
         x = random.randrange(int(self.img_size[1] * 0.05), int(self.img_size[1] * 0.9))
         y = random.randrange(int(self.img_size[2] * 0.05), int(self.img_size[2] * 0.9))
 
@@ -282,6 +282,8 @@ class RoverEnvV2(Env):
             self.visited.add(current_cell)
             reward += 0.01  # Assign a reward for visiting a new cell
             self.cells_visited+=1
+        else:
+            reward -= 0.005
 
         # For elements in the Ev
         for elem in self.elements:
@@ -298,8 +300,8 @@ class RoverEnvV2(Env):
                 if self.has_collided(self.drone, elem) and elem.found == 0:
                     # Remove the fuel tank from the env.
                     elem.found=1
-                    self.targets_collected +=1
-                    reward += 1
+                    self.targets_collected += 1
+                    reward += 2
                     # Generate new target
                     self._place_targets(1)
                 else:
