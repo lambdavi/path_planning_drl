@@ -12,7 +12,7 @@ from env.elements import *
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     
 class RoverEnvV2(Env):
-    def __init__(self, obs_type="cnn", print_path=False):
+    def __init__(self, obs_type="image", print_path=False):
         super(RoverEnvV2, self).__init__()
         self.obs_type = obs_type
         self.max_targets = 4

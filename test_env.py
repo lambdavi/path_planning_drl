@@ -1,21 +1,49 @@
-from roverenv_v2g_fin import RoverEnvV2
+from env.roverenv_easy import RoverEnvV2
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN, A2C
+from stable_baselines3.common.evaluation import evaluate_policy
+
 from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.vec_env import VecEnvWrapper
+import imageio
+import numpy as np
+from time import sleep
 
-"""
+
 # LATER WE WILL USE STABLEBASELINES
 # It will check your custom environment and output additional warnings if needed
-model = DQN("CnnPolicy", env, verbose=1, policy_kwargs=dict(normalize_images=False))
-model.learn(total_timesteps=10000, log_interval=4)
-model.save("dqn_roverenv")
+
+env = RoverEnvV2(obs_type='linear')
+model = DQN(policy="MlpPolicy", env=env, verbose=0)
+#model.learn(total_timesteps=100000, log_interval=4)
+#model.save("dqn_roverenv")
+model = DQN.load("models/ef4wel2v/model", env)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10, return_episode_rewards=True)
+print(mean_reward, std_reward)
+# Enjoy trained agent
+obs = env.reset()[0]
+for i in range(1000):
+    print(i)
+    action, _states = model.predict(obs)
+    print("Action", env.get_action_meanings()[action.item()])
+    obs, rewards, dones, _, info = env.step(action)
+    print(f"OBS: {obs}, Reward: {rewards}, Dones: {dones}")
+    if dones:
+        obs = env.reset()[0]
+    env.render()
+    sleep(0.5)
+exit(1)
+"""images = []
+obs = model.env.reset()
+img = model.env.render()
+for i in range(350):
+    images.append(img)
+    action, _ = model.predict(obs)
+    obs, _, _ ,_ = model.env.step(action)
+    img = model.env.render()
+
+imageio.mimsave("lander_a2c.gif", [np.array(img) for i, img in enumerate(images) if i%2 == 0], fps=29)
 """
-
-vec_env = RoverEnvV2(obs_type='linear')
-
-model = A2C.load("models/9u32jl4c/model")
-
 obs = vec_env.reset()
 print(obs[0].shape)
 while True:
@@ -23,6 +51,8 @@ while True:
     obs, rewards, dones, info, _ = vec_env.step(action)
     obs = [obs]
     vec_env.render()
+    print(dones)
+    sleep(0.1)
     if dones:
         obs = vec_env.reset()
 

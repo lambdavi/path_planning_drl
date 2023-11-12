@@ -4,3 +4,4 @@ wandb
 tmp
 models/
 old_envs/
+.DS_Store

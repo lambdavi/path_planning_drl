@@ -21,7 +21,7 @@ class LinearDQN_Agent(GeneralAgent):
             self.load(load_path)
             self.model.eval()
         
-    def get_action(self, state, episode):
+    def choose_action(self, state, episode):
         # random moves: tradeoff between exploration / exploitation
         self.eps = 80 - episode # random function
         final_move = 0

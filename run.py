@@ -19,11 +19,11 @@ parser.add_argument('--easy', action='store_true')
 
 args = parser.parse_args()
 
-OBS_TYPE = args.obs
 if args.easy:
+    print("Easy Env Loaded!")
     env = RoverEnvV2E(obs_type=args.obs)
 else:
-    env = RoverEnvV2(obs_type=OBS_TYPE)
+    env = RoverEnvV2(obs_type=args.obs)
 N_GAMES = 1000
 load_checkpoint = False
 score_history = []
@@ -33,21 +33,21 @@ print(args)
 if args.sb:
     log_dir = "tmp/"
     env = Monitor(env, log_dir)
-    policy = "CnnPolicy" if OBS_TYPE == "image" else "MlpPolicy"
+    policy = "CnnPolicy" if args.obs == "image" else "MlpPolicy"
     print(policy)
     if args.algo == "dqn":
-        model = DQN(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1, buffer_size=100)
+        model = DQN(env=env, policy=policy, exploration_fraction=0.05, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=0, buffer_size=10000)
     elif args.algo == "a2c":
-        model = A2C(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+        model = A2C(env=env, policy=policy, n_steps=32, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=0)
     else:
-        model = PPO(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=1)
+        model = PPO(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=0)
         
     # Train the agent
     if LOG_ON:
         wandb.login()
         run = wandb.init(
             # Set the project where this run will be logged
-            project="a2c-test",
+            project="rover_projects",
             monitor_gym=True,
             sync_tensorboard=True,
             # Track hyperparameters and run metadata
@@ -61,7 +61,7 @@ if args.sb:
         save_freq=100000, save_path=log_dir, name_prefix="ddq_"
     )
     model.learn(
-        total_timesteps=500000 if OBS_TYPE=="linear" else 100000,
+        total_timesteps=10000000 if args.obs=="linear" else 100000,
         callback=[
             checkpoint_callback,
             WandbCallback(
@@ -83,14 +83,15 @@ else:
             pass # TODO: DQN CNN
     else:
         if args.obs == "image":
-            agent = Agent(3,n_actions=8, obs_type = args.obs)
+            agent = Agent(obs_space=3,n_actions=8, obs_type = args.obs)
 
     for i in range(N_GAMES):
         observation = env.reset()[0]
         score=0
         done = False
         while not done:
-            action = agent.choose_action(observation)
+            if args.algo == "dqn":
+                action = agent.choose_action(observation, env.frame_iteration)
             observation_, reward, done, _, _ = env.step(action)
             score += reward
             if not load_checkpoint:
