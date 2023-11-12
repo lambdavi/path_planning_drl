@@ -16,6 +16,7 @@ parser.add_argument('--algo', type=str, default='dqn')
 parser.add_argument('--obs', type=str, default='image')
 parser.add_argument('--sb', action='store_true')
 parser.add_argument('--easy', action='store_true')
+parser.add_argument('--log', action='store_true')
 
 args = parser.parse_args()
 
@@ -27,7 +28,8 @@ else:
 N_GAMES = 1000
 load_checkpoint = False
 score_history = []
-LOG_ON = True
+LOG_ON = args.log
+checkpoint = []
 
 print(args)
 if args.sb:
@@ -56,22 +58,21 @@ if args.sb:
                 "collected": env.unwrapped.targets_collected,
                 "epochs": N_GAMES,
             })
-    # Create checkpoint callback
-    checkpoint_callback = CheckpointCallback(
-        save_freq=100000, save_path=log_dir, name_prefix="ddq_"
-    )
-    model.learn(
-        total_timesteps=10000000 if args.obs=="linear" else 100000,
-        callback=[
-            checkpoint_callback,
-            WandbCallback(
+        checkpoint.append(WandbCallback(
                 gradient_save_freq=10000,
                 model_save_path=f"models/{run.id}",
                 model_save_freq=10000,
                 log="all",
                 verbose=0,
-            ),
-        ],
+            ))
+    # Create checkpoint callback
+    checkpoint_callback = CheckpointCallback(
+        save_freq=100000, save_path=log_dir, name_prefix="ddq_"
+    )
+    checkpoint.append(checkpoint_callback)
+    model.learn(
+        total_timesteps=10000000 if args.obs=="linear" else 100000,
+        callback=checkpoint,
         log_interval=4,
         progress_bar=True
     )

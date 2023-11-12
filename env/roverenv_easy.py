@@ -4,7 +4,6 @@ import random
 import math
 from gymnasium import Env, spaces
 from env.elements import *
-
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     
 class RoverEnvV2(Env):
@@ -104,8 +103,7 @@ class RoverEnvV2(Env):
         drone_x, drone_y = self.drone.get_position()
         observations = []
 
-        
-        for elem in self.elements:
+        for elem in self.elements: # 4 Elements
             if isinstance(elem, Aruco) and elem.found == 0:
                 target_x, target_y = elem.get_position()
                 direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
@@ -123,6 +121,9 @@ class RoverEnvV2(Env):
                     observations.append(6)
                 elif -80 < direction <= -25:
                     observations.append(7)
+                else:
+                    observations.append(0)
+
 
         for elem in self.elements:
             if isinstance(elem, Wall):
@@ -149,13 +150,13 @@ class RoverEnvV2(Env):
         return np.array(observations, dtype=np.float32)
     
     def get_obs_obstacles(self, distance):
-        if 0.0 < distance <= 0.5:
+        if 0.0 < distance <= 50:
             return 1
-        elif 0.5 < distance <= 1.0:
+        elif 50 < distance <= 100:
             return 2
-        elif 1.0 < distance <= 1.5:
+        elif 100 < distance <= 200:
             return 3
-        elif 1.5 < distance:
+        elif 200 < distance:
             return 4
     """def calculate_linear_observations_old(self):
         drone_x, drone_y = self.drone.get_position()
