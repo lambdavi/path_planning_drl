@@ -4,6 +4,7 @@ import random
 import math
 from gymnasium import Env, spaces
 from env.elements import *
+import matplotlib.pyplot as plt
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     
 class RoverEnvV2(Env):
@@ -91,6 +92,7 @@ class RoverEnvV2(Env):
 
         # Reset the Canvas 
         self.canvas = np.ones(self.img_size) * 1
+        plt.close()
 
         # Return observations based on the selected "obs_type"
         self.draw_elements_on_canvas()
@@ -231,8 +233,11 @@ class RoverEnvV2(Env):
     def render(self, mode = "human"):
         assert mode in ["human", "rgb_array"], "Invalid mode, must be either \"human\" or \"rgb_array\""
         if mode == "human":
-            cv2.imshow("Game", self.canvas.transpose((1,2,0)))
-            cv2.waitKey(10)
+            #cv2.imshow("Game", self.canvas.transpose((1,2,0)))
+            plt.ion()
+            plt.imshow(self.canvas.transpose((1,2,0)))
+            plt.pause(0.05)
+            #cv2.waitKey(0)
         elif mode == "rgb_array":
             return self.canvas
     

@@ -10,7 +10,7 @@ class LinearDQN_Agent(GeneralAgent):
         self.bs = bs
         self.eps = None
         self.gamma = 0.9
-        self.model = LinearDQN(9, 256, 128, n_actions)
+        self.model = LinearDQN(24, 256, 128, n_actions)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
         self.criterion = torch.nn.HuberLoss()
         self.train = train
@@ -39,7 +39,7 @@ class LinearDQN_Agent(GeneralAgent):
         
         return final_move
     
-    def train_step(self, observation, action, reward, observation_, done):
+    def learn(self, observation, action, reward, observation_, done):
         observation = torch.tensor(observation, dtype=torch.float)
         action = torch.tensor(action, dtype=torch.long)
         observation_ = torch.tensor(observation_, dtype=torch.float)

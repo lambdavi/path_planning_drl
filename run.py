@@ -17,12 +17,13 @@ parser.add_argument('--obs', type=str, default='image')
 parser.add_argument('--sb', action='store_true')
 parser.add_argument('--easy', action='store_true')
 parser.add_argument('--log', action='store_true')
+parser.add_argument('--path', action='store_true')
 
 args = parser.parse_args()
 
 if args.easy:
     print("Easy Env Loaded!")
-    env = RoverEnvV2E(obs_type=args.obs)
+    env = RoverEnvV2E(obs_type=args.obs, print_path=args.path)
 else:
     env = RoverEnvV2(obs_type=args.obs)
 N_GAMES = 1000
@@ -96,9 +97,13 @@ else:
             observation_, reward, done, _, _ = env.step(action)
             score += reward
             if not load_checkpoint:
-                agent.learn(observation, reward, observation_, done)
+                if args.algo == "dqn":
+                    agent.learn(observation, action, reward, observation_, done)
+                else:
+                    agent.learn(observation, reward, observation_, done)
+
             observation = observation_
-            #env.render()
+            env.render()
         score_history.append(score)
         avg_rew = np.mean(score_history[-20:])
         print(f"Episode: {i}, Instant_reward: {score}, Avg Reward: {avg_rew}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
