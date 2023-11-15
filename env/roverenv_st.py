@@ -10,7 +10,7 @@ font = cv2.FONT_HERSHEY_COMPLEX_SMALL
     
 class RoverEnvST(Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
-    def __init__(self, obs_type="cnn", print_path=False):
+    def __init__(self, obs_type="image", print_path=False):
         super(RoverEnvST, self).__init__()
         self.obs_type = obs_type
         self.max_targets = 4
