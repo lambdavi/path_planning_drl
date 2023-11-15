@@ -84,7 +84,7 @@ class RoverEnvST(Env):
         # Intialise the drone
         self.drone = Drone("drone", self.x_max, self.x_min, self.y_max, self.y_min)
         self.drone.set_position(x,y)
-        print(f"Drone spawned in {x},{y}")
+        #print(f"Drone spawned in {x},{y}")
         # Intialise the elements 
         self.elements = [self.drone]
         
@@ -131,7 +131,7 @@ class RoverEnvST(Env):
 
                 # Normalize and encode distance into observations
                 observations.append(distance / max_distance)
-        print(len(observations))
+        #print(len(observations))
         return np.array(observations, dtype=np.float32)
 
     
@@ -202,7 +202,7 @@ class RoverEnvST(Env):
 
         step_size = 5
         # apply the action to the drone
-        print(f"Action is {self.get_action_meanings()[action]}")
+        #print(f"Action is {self.get_action_meanings()[action]}")
 
         if action == 0:
             self.drone.move(0,step_size)
