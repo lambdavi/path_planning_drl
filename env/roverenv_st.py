@@ -13,7 +13,7 @@ class RoverEnvST(Env):
     def __init__(self, obs_type="cnn", print_path=False):
         super(RoverEnvST, self).__init__()
         self.obs_type = obs_type
-        self.max_targets = 1
+        self.max_targets = 4
         self.frame_iteration = 0
         self.drone_path = []  # Initialize an empty list to store the drone's path
         self.print_path = print_path
@@ -107,18 +107,22 @@ class RoverEnvST(Env):
         observations = []
 
         max_distance = max(self.img_size[1], self.img_size[2])  # Adjust this based on your environment size
-
+        closest_elem = []
+        local_max_dist = max_distance
         for elem in self.elements:
             if isinstance(elem, Aruco) and elem.found == 0:
                 target_x, target_y = elem.get_position()
-                direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
                 distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
+                if local_max_dist < distance:
+                    local_max_dist = distance
+                    direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
+                    closest_elem = [np.cos(np.radians(direction)), np.sin(np.radians(direction)), distance/max_distance]
+                    closest_elem.append()
+        # Encode direction into observations
+        observations.extend(closest_elem[0])
 
-                # Encode direction into observations
-                observations.extend([np.cos(np.radians(direction)), np.sin(np.radians(direction))])
-
-                # Normalize and encode distance into observations
-                observations.append(distance / max_distance)
+        # Normalize and encode distance into observations
+        observations.append(closest_elem[1])
 
         for elem in self.elements:
             if isinstance(elem, Wall):
@@ -247,18 +251,24 @@ class RoverEnvST(Env):
         # Check for collisions with Aruco targets
         target_x = 0
         target_y=0
+        local_closest_elem = None
+        local_best_dist = 999999
         for elem in self.elements:
             if isinstance(elem, Aruco):
                 target_x, target_y = elem.get_position()
+                curr_dist = np.sqrt((self.drone.x - target_x) ** 2 + (self.drone.y - target_y) ** 2)
+                if curr_dist < local_best_dist:
+                    local_closest_elem = [target_x, target_y]
                 if self.has_collided(self.drone, elem) and elem.found == 0:
                     elem.found = 1
                     self.targets_collected += 1
                     reward += 2  # Reward for target collection
                     self._place_targets(1)  # Generate new target
+        
         if not done:        
             # Calculate the distance moved by the drone
-            prev_dist = np.sqrt((prev_drone_x - target_x) ** 2 + (prev_drone_y - target_y) ** 2)
-            curr_dist = np.sqrt((self.drone.x - target_x) ** 2 + (self.drone.y - target_y) ** 2)
+            prev_dist = np.sqrt((prev_drone_x - local_closest_elem[0]) ** 2 + (prev_drone_y - local_closest_elem[1]) ** 2)
+            curr_dist = np.sqrt((self.drone.x - local_closest_elem[0]) ** 2 + (self.drone.y - local_closest_elem[1]) ** 2)
             if curr_dist < prev_dist:
                 # Reward for getting closer to the target
                 reward += 0.1 / (curr_dist if curr_dist != 0 else 1)
