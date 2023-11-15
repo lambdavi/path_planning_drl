@@ -1,4 +1,5 @@
 from env.roverenv_easy import RoverEnvV2
+from env.roverenv_st import RoverEnvST
 import matplotlib.pyplot as plt
 from stable_baselines3 import DQN, A2C
 from stable_baselines3.common.evaluation import evaluate_policy
@@ -13,25 +14,25 @@ from time import sleep
 # LATER WE WILL USE STABLEBASELINES
 # It will check your custom environment and output additional warnings if needed
 
-env = RoverEnvV2(obs_type='linear')
+env = RoverEnvST(obs_type='linear')
+#env = RoverEnvV2(obs_type='linear')
 model = DQN(policy="MlpPolicy", env=env, verbose=0)
 #model.learn(total_timesteps=100000, log_interval=4)
 #model.save("dqn_roverenv")
-model = DQN.load("models/ef4wel2v/model", env)
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10, return_episode_rewards=True)
+model = DQN.load("models/best/model", env)
+mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
 print(mean_reward, std_reward)
 # Enjoy trained agent
 obs = env.reset()[0]
 for i in range(1000):
-    print(i)
+    #print(i)
     action, _states = model.predict(obs)
-    print("Action", env.get_action_meanings()[action.item()])
+    #print("Action", env.get_action_meanings()[action.item()])
     obs, rewards, dones, _, info = env.step(action)
-    print(f"OBS: {obs}, Reward: {rewards}, Dones: {dones}")
+    #print(f"OBS: {obs}, Reward: {rewards}, Dones: {dones}")
     if dones:
         obs = env.reset()[0]
     env.render()
-    sleep(0.5)
 exit(1)
 """images = []
 obs = model.env.reset()

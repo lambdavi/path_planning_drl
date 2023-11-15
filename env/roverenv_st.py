@@ -29,7 +29,7 @@ class RoverEnvST(Env):
             )
         elif obs_type == 'linear':
             # Define the observation space for linear observations
-            self.observation_shape = (18,)  # Adjust the shape as needed
+            self.observation_shape = (43,)  # Adjust the shape as needed
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
                 high=np.ones(self.observation_shape, dtype=np.float16),
@@ -64,9 +64,9 @@ class RoverEnvST(Env):
             x,y = elem.x, elem.y
             self.canvas[:, y:y + elem_shape[1], x:x + elem_shape[0]] = elem.icon.transpose((2, 0, 1))
 
-        text = 'Visited: {} | Targets Collected: {}'.format(self.cells_visited, self.targets_collected)
+        self.text = 'Visited: {} | Targets Collected: {}'.format(self.cells_visited, self.targets_collected)
         # Put the info on canvas 
-        self.canvas = cv2.putText(self.canvas, text, (10,20), font,  0.8, (0,0,0), 1, cv2.LINE_AA)
+        self.canvas = cv2.putText(self.canvas, self.text, (10,20), font,  0.8, (255,255,255), 2, cv2.LINE_AA)
 
     def reset(self, seed=None):
         self.cells_visited = 0
@@ -122,6 +122,69 @@ class RoverEnvST(Env):
 
         # Normalize and encode distance into observations
         observations.append(closest_elem[1])
+        step_size=5
+        for elem in self.elements:
+            if isinstance(elem, Wall):
+                target_x, target_y = elem.get_position()
+                direction = math.atan2(target_y - drone_y, target_x - drone_x)
+                # OBS for each wall will be [0/1]*n_walls where each cell will be 0 if going in that direction would result in an impact
+                
+                if self.has_collided_points([target_x, target_y], [drone_x, drone_y+step_size]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x-step_size, drone_y]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x, drone_y-step_size]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x+step_size, drone_y]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x-step_size, drone_y+step_size]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x-step_size, drone_y-step_size]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x+step_size, drone_y-step_size]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+                if self.has_collided_points([target_x, target_y], [drone_x+step_size, drone_y+step_size]):
+                    observations.append(1)
+                else:
+                    observations.append(0)
+
+        #print(len(observations))
+        return np.array(observations, dtype=np.float32)
+    
+    """    def calculate_linear_observations(self):
+        drone_x, drone_y = self.drone.get_position()
+        observations = []
+
+        max_distance = max(self.img_size[1], self.img_size[2])  # Adjust this based on your environment size
+        closest_elem = []
+        local_max_dist = 99999999
+        for elem in self.elements:
+            if isinstance(elem, Aruco) and elem.found == 0:
+                target_x, target_y = elem.get_position()
+                distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
+                if distance < local_max_dist:
+                    local_max_dist = distance
+                    direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
+                    closest_elem = [[np.cos(np.radians(direction)), np.sin(np.radians(direction))], distance/max_distance]
+        # Encode direction into observations
+        observations.extend(closest_elem[0])
+
+        # Normalize and encode distance into observations
+        observations.append(closest_elem[1])
 
         for elem in self.elements:
             if isinstance(elem, Wall):
@@ -135,18 +198,10 @@ class RoverEnvST(Env):
                 # Normalize and encode distance into observations
                 observations.append(distance / max_distance)
         #print(len(observations))
-        return np.array(observations, dtype=np.float32)
+        return np.array(observations, dtype=np.float32)"""
 
-    
-    def get_obs_obstacles(self, distance):
-        if 0.0 < distance <= 50:
-            return 1
-        elif 50 < distance <= 100:
-            return 2
-        elif 100 < distance <= 200:
-            return 3
-        elif 200 < distance:
-            return 4
+
+
             
     def _place_walls(self, n=5):
         for i in range(n):
@@ -179,12 +234,16 @@ class RoverEnvST(Env):
     def render(self, mode = "human"):
         assert mode in ["human", "rgb_array"], "Invalid mode, must be either \"human\" or \"rgb_array\""
         if mode == "human":
-            #cv2.imshow("Game", self.canvas.transpose((1,2,0)))
+            #cv2.startWindowThread()
+            cv2.imshow("Game", self.canvas.transpose((1,2,0)))
             plt.ion()
+            plt.xlabel(self.text)
             plt.imshow(self.canvas.transpose((1,2,0)))
-            plt.pause(1)
+            plt.pause(0.05)
             plt.clf()
-            #cv2.waitKey(0)
+
+            #cv2.waitKey(1)
+            #cv2.destroyAllWindows()
         elif mode == "rgb_array":
             return self.canvas
     
@@ -311,6 +370,21 @@ class RoverEnvST(Env):
             x_col = True
 
         if 2 * abs(elem1_y - elem2_y) <= (elem1.icon_h + elem2.icon_h):
+            y_col = True
+
+        if x_col and y_col:
+            return True
+
+        return False
+
+    def has_collided_points(self, coord1, coord2):
+        x_col = False
+        y_col = False
+
+        if 2 * abs(coord1[0] - coord2[0]) <= (32 + 32):
+            x_col = True
+
+        if 2 * abs(coord1[1] - coord2[1]) <= (32 + 32):
             y_col = True
 
         if x_col and y_col:
