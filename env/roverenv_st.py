@@ -108,16 +108,15 @@ class RoverEnvST(Env):
 
         max_distance = max(self.img_size[1], self.img_size[2])  # Adjust this based on your environment size
         closest_elem = []
-        local_max_dist = max_distance
+        local_max_dist = 99999999
         for elem in self.elements:
             if isinstance(elem, Aruco) and elem.found == 0:
                 target_x, target_y = elem.get_position()
                 distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
-                if local_max_dist < distance:
+                if distance < local_max_dist:
                     local_max_dist = distance
                     direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
                     closest_elem = [np.cos(np.radians(direction)), np.sin(np.radians(direction)), distance/max_distance]
-                    closest_elem.append()
         # Encode direction into observations
         observations.extend(closest_elem[0])
 
