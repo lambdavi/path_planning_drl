@@ -116,7 +116,7 @@ class RoverEnvST(Env):
                 if distance < local_max_dist:
                     local_max_dist = distance
                     direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
-                    closest_elem = [np.cos(np.radians(direction)), np.sin(np.radians(direction)), distance/max_distance]
+                    closest_elem = [[np.cos(np.radians(direction)), np.sin(np.radians(direction))], distance/max_distance]
         # Encode direction into observations
         observations.extend(closest_elem[0])
 
