@@ -245,13 +245,16 @@ class RoverEnvST(Env):
                 break
 
         # Check for collisions with Aruco targets
+        target_x = 0
+        target_y=0
         for elem in self.elements:
-            if isinstance(elem, Aruco) and self.has_collided(self.drone, elem) and elem.found == 0:
+            if isinstance(elem, Aruco):
                 target_x, target_y = elem.get_position()
-                elem.found = 1
-                self.targets_collected += 1
-                reward += 2  # Reward for target collection
-                self._place_targets(1)  # Generate new target
+                if self.has_collided(self.drone, elem) and elem.found == 0:
+                    elem.found = 1
+                    self.targets_collected += 1
+                    reward += 2  # Reward for target collection
+                    self._place_targets(1)  # Generate new target
         if not done:        
             # Calculate the distance moved by the drone
             prev_dist = np.sqrt((prev_drone_x - target_x) ** 2 + (prev_drone_y - target_y) ** 2)
