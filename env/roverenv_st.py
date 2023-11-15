@@ -195,80 +195,77 @@ class RoverEnvST(Env):
         # Flag that marks the termination of an episode
         done = False
         self.frame_iteration += 1
-        # Assert that it is a valid action 
+        # Assert that it is a valid action
         assert self.action_space.contains(action), "Invalid Action"
 
         reward = 0
 
         step_size = 5
-        # apply the action to the drone
-        #print(f"Action is {self.get_action_meanings()[action]}")
 
+        # Store current drone position before taking action
+        prev_drone_x, prev_drone_y = self.drone.get_position()
+
+        # Apply the action to the drone
         if action == 0:
-            self.drone.move(0,step_size)
+            self.drone.move(0, step_size)
         elif action == 1:
-            self.drone.move(-step_size,0)
+            self.drone.move(-step_size, 0)
         elif action == 2:
-            self.drone.move(0,-step_size)
+            self.drone.move(0, -step_size)
         elif action == 3:
-            self.drone.move(step_size,0)
+            self.drone.move(step_size, 0)
         elif action == 4:
-            self.drone.move(-step_size,step_size)
+            self.drone.move(-step_size, step_size)
         elif action == 5:
-            self.drone.move(-step_size,-step_size)
+            self.drone.move(-step_size, -step_size)
         elif action == 6:
-            self.drone.move(step_size,-step_size)
+            self.drone.move(step_size, -step_size)
         elif action == 7:
-            self.drone.move(step_size,step_size)
+            self.drone.move(step_size, step_size)
         else:
             print("ERROR")
 
-
-        # Calculate the drone's current cell coordinates
+        # Calculate the drone's current cell coordinates after taking action
         current_cell = (self.drone.x // self.drone.icon_w, self.drone.y // self.drone.icon_h)
-        if self.print_path:
-            self.drone_path.append(current_cell)  # Append the current cell to the drone's path
+
+        # Calculate the distance moved by the drone
+        distance_moved = np.sqrt((prev_drone_x - self.drone.x) ** 2 + (prev_drone_y - self.drone.y) ** 2)
+
+        # Reward for getting closer to the target
+        reward += 0.1 / distance_moved  # Adjust the scaling factor as needed
 
         if current_cell not in self.visited:
             # The drone has visited a new cell
             self.visited.add(current_cell)
             reward += 0.01  # Assign a reward for visiting a new cell
-            self.cells_visited+=1
+            self.cells_visited += 1
         else:
             reward -= 0.005
 
-        # For elements in the Ev
+        # Check for collisions with walls
         for elem in self.elements:
-            if isinstance(elem, Wall):
-                # If the drone has collided.
-                if self.has_collided(self.drone, elem):
-                    # Conclude the episode and remove the drone from the Env.
-                    done = True
-                    reward -= 2
-                    self.elements.remove(self.drone)
-                    break
-            elif isinstance(elem, Aruco):
-                # If the fuel tank has collided with the drone.
-                if self.has_collided(self.drone, elem) and elem.found == 0:
-                    # Remove the fuel tank from the env.
-                    elem.found=1
-                    self.targets_collected += 1
-                    reward += 2
-                    # Generate new target
-                    self._place_targets(1)
-                else:
-                    target_x, target_y = elem.get_position()
-                    distance = np.sqrt((target_x - self.drone.x) ** 2 + (target_y - self.drone.y) ** 2)
-                    # Define a proximity reward function (you can adjust the scaling factor)
-                    if distance != 0:
-                        reward += 0.1 / distance  # Adjust the scaling factor as needed
-                    else:
-                        reward += 0.1
-        
-        if self.frame_iteration > 2500:
+            if isinstance(elem, Wall) and self.has_collided(self.drone, elem):
+                done = True
+                reward = -2  # Negative reward for crash
+                self.elements.remove(self.drone)
+                break
+
+        # Check for collisions with Aruco targets
+        for elem in self.elements:
+            if isinstance(elem, Aruco) and self.has_collided(self.drone, elem) and elem.found == 0:
+                elem.found = 1
+                self.targets_collected += 1
+                reward += 2  # Reward for target collection
+                self._place_targets(1)  # Generate new target
+
+        # Negative reward for reaching step limit
+        if self.frame_iteration > 1500:
             done = True
             reward -= 0.5
-        
+
+        # Reward to incentivize exploration of new cells
+        reward += 0.001
+
         # Increment the episodic return
         self.ep_return += 1
 
