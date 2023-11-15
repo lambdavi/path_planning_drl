@@ -228,12 +228,6 @@ class RoverEnvST(Env):
         # Calculate the drone's current cell coordinates after taking action
         current_cell = (self.drone.x // self.drone.icon_w, self.drone.y // self.drone.icon_h)
 
-        # Calculate the distance moved by the drone
-        distance_moved = np.sqrt((prev_drone_x - self.drone.x) ** 2 + (prev_drone_y - self.drone.y) ** 2)
-
-        # Reward for getting closer to the target
-        reward += 0.1 / distance_moved  # Adjust the scaling factor as needed
-
         if current_cell not in self.visited:
             # The drone has visited a new cell
             self.visited.add(current_cell)
@@ -253,10 +247,18 @@ class RoverEnvST(Env):
         # Check for collisions with Aruco targets
         for elem in self.elements:
             if isinstance(elem, Aruco) and self.has_collided(self.drone, elem) and elem.found == 0:
+                target_x, target_y = elem.get_position()
                 elem.found = 1
                 self.targets_collected += 1
                 reward += 2  # Reward for target collection
                 self._place_targets(1)  # Generate new target
+        if not done:        
+            # Calculate the distance moved by the drone
+            prev_dist = np.sqrt((prev_drone_x - target_x) ** 2 + (prev_drone_y - target_y) ** 2)
+            curr_dist = np.sqrt((self.drone.x - target_x) ** 2 + (self.drone.y - target_y) ** 2)
+            if curr_dist < prev_dist:
+                # Reward for getting closer to the target
+                reward += 0.1 / (curr_dist if curr_dist != 0 else 1)
 
         # Negative reward for reaching step limit
         if self.frame_iteration > 1500:
