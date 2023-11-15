@@ -1,8 +1,9 @@
 from env.roverenv_v2g_fin import RoverEnvV2
 from env.roverenv_easy import RoverEnvV2 as RoverEnvV2E
+from env.roverenv_st import RoverEnvST
 from stable_baselines3 import DQN, A2C, PPO
 from agents.actor_critic import Agent
-from agents.LQAgent import LinearDQN_Agent
+from agents.LQAgent import LinearDQN_Agent, ImageDQN_Agent
 import numpy as np
 import wandb
 from stable_baselines3.common.monitor import Monitor
@@ -16,6 +17,7 @@ parser.add_argument('--algo', type=str, default='dqn')
 parser.add_argument('--obs', type=str, default='image')
 parser.add_argument('--sb', action='store_true')
 parser.add_argument('--easy', action='store_true')
+parser.add_argument('--st', action='store_true')
 parser.add_argument('--log', action='store_true')
 parser.add_argument('--path', action='store_true')
 
@@ -24,6 +26,9 @@ args = parser.parse_args()
 if args.easy:
     print("Easy Env Loaded!")
     env = RoverEnvV2E(obs_type=args.obs, print_path=args.path)
+elif args.st:
+    print("St Env Loaded!")
+    env = RoverEnvST(obs_type=args.obs, print_path=args.path)
 else:
     env = RoverEnvV2(obs_type=args.obs)
 N_GAMES = 1000
@@ -82,33 +87,58 @@ else:
         if args.obs == "linear":
             agent = LinearDQN_Agent(8)
         else:
-            pass # TODO: DQN CNN
+            agent = ImageDQN_Agent()
     else:
-        if args.obs == "image":
+        if args.obs == "dqn":
+            pass
+        else:
             agent = Agent(obs_space=3,n_actions=8, obs_type = args.obs)
 
-    for i in range(N_GAMES):
-        observation = env.reset()[0]
-        score=0
-        done = False
-        while not done:
-            if args.algo == "dqn":
+    if args.algo == "dqn":
+        for i in range(N_GAMES):
+            observation = env.reset()[0]
+            score=0
+            done = False
+            while not done:
                 action = agent.choose_action(observation, env.frame_iteration)
-            observation_, reward, done, _, _ = env.step(action)
-            score += reward
-            if not load_checkpoint:
-                if args.algo == "dqn":
-                    agent.learn(observation, action, reward, observation_, done)
-                else:
-                    agent.learn(observation, reward, observation_, done)
+                observation_, reward, done, _, _ = env.step(action)
+                score += reward
+                if not load_checkpoint:
+                    if args.algo == "dqn":
+                        agent.learn(observation, action, reward, observation_, done)
+                    else:
+                        agent.learn(observation, reward, observation_, done)
 
-            observation = observation_
-            env.render()
-        score_history.append(score)
-        avg_rew = np.mean(score_history[-20:])
-        print(f"Episode: {i}, Instant_reward: {score}, Avg Reward: {avg_rew}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
-        if LOG_ON:
-                wandb.log({"Instant_reward": score, "Avg_reward": avg_rew, "Collected": env.targets_collected, "Visited":env.cells_visited})
-        # Render the game
+                observation = observation_
+                env.render()
+            score_history.append(score)
+            avg_rew = np.mean(score_history[-20:])
+            print(f"Episode: {i}, Instant_reward: {score}, Avg Reward: {avg_rew}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
+            if LOG_ON:
+                    wandb.log({"Instant_reward": score, "Avg_reward": avg_rew, "Collected": env.targets_collected, "Visited":env.cells_visited})
+            # Render the game
+    else:
+        for i in range(N_GAMES):
+            observation = env.reset()[0]
+            score=0
+            done = False
+            while not done:
+                action = agent.choose_action(observation, env.frame_iteration)
+                observation_, reward, done, _, _ = env.step(action)
+                score += reward
+                if not load_checkpoint:
+                    if args.algo == "dqn":
+                        agent.learn(observation, action, reward, observation_, done)
+                    else:
+                        agent.learn(observation, reward, observation_, done)
 
-    #env.close()
+                observation = observation_
+                env.render()
+            score_history.append(score)
+            avg_rew = np.mean(score_history[-20:])
+            print(f"Episode: {i}, Instant_reward: {score}, Avg Reward: {avg_rew}, Visited: {env.cells_visited}, Targets Collected: {env.targets_collected}")
+            if LOG_ON:
+                    wandb.log({"Instant_reward": score, "Avg_reward": avg_rew, "Collected": env.targets_collected, "Visited":env.cells_visited})
+            # Render the game
+
+        #env.close()

@@ -5,14 +5,15 @@ import math
 from gymnasium import Env, spaces
 from env.elements import *
 import matplotlib.pyplot as plt
+from time import sleep
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     
-class RoverEnvV2(Env):
+class RoverEnvST(Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
     def __init__(self, obs_type="cnn", print_path=False):
-        super(RoverEnvV2, self).__init__()
+        super(RoverEnvST, self).__init__()
         self.obs_type = obs_type
-        self.max_targets = 4
+        self.max_targets = 1
         self.frame_iteration = 0
         self.drone_path = []  # Initialize an empty list to store the drone's path
         self.print_path = print_path
@@ -28,7 +29,7 @@ class RoverEnvV2(Env):
             )
         elif obs_type == 'linear':
             # Define the observation space for linear observations
-            self.observation_shape = (24,)  # Adjust the shape as needed
+            self.observation_shape = (18,)  # Adjust the shape as needed
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
                 high=np.ones(self.observation_shape, dtype=np.float16),
@@ -88,7 +89,7 @@ class RoverEnvV2(Env):
         self.elements = [self.drone]
         
         self._place_walls()
-        self._place_targets()
+        self._place_targets(n=self.max_targets)
 
         # Reset the Canvas 
         self.canvas = np.ones(self.img_size) * 1
@@ -105,51 +106,34 @@ class RoverEnvV2(Env):
         drone_x, drone_y = self.drone.get_position()
         observations = []
 
-        for elem in self.elements: # 4 Elements
+        max_distance = max(self.img_size[1], self.img_size[2])  # Adjust this based on your environment size
+
+        for elem in self.elements:
             if isinstance(elem, Aruco) and elem.found == 0:
                 target_x, target_y = elem.get_position()
                 direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
-                if -25 < direction <= 25:
-                    observations.append(1)
-                elif 25 < direction <= 80:
-                    observations.append(2)
-                elif 80 < direction <= 130:
-                    observations.append(3)
-                elif 130 < direction <= 180:
-                    observations.append(4)
-                elif -180 < direction <= -130:
-                    observations.append(5)
-                elif -130 < direction <= -80:
-                    observations.append(6)
-                elif -80 < direction <= -25:
-                    observations.append(7)
-                else:
-                    observations.append(0)
+                distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
 
+                # Encode direction into observations
+                observations.extend([np.cos(np.radians(direction)), np.sin(np.radians(direction))])
+
+                # Normalize and encode distance into observations
+                observations.append(distance / max_distance)
 
         for elem in self.elements:
             if isinstance(elem, Wall):
                 target_x, target_y = elem.get_position()
                 direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
                 distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
-                o = self.get_obs_obstacles(distance)
-                if 20 < direction <= 60:
-                    observations.append(o)
-                else:
-                    observations.append(0)
-                if -20 < direction <= 0:
-                    observations.append(o)
-                else:
-                    observations.append(0)
-                if 0 < direction <= 20:
-                    observations.append(o)
-                else:
-                    observations.append(0)
-                if -60 < direction <= -20:
-                    observations.append(o)
-                else:
-                    observations.append(0)
+
+                # Encode direction into observations
+                observations.extend([np.cos(np.radians(direction)), np.sin(np.radians(direction))])
+
+                # Normalize and encode distance into observations
+                observations.append(distance / max_distance)
+        print(len(observations))
         return np.array(observations, dtype=np.float32)
+
     
     def get_obs_obstacles(self, distance):
         if 0.0 < distance <= 50:

@@ -17,11 +17,13 @@ class Point(object):
         return (self.x, self.y)
     
     def move(self, del_x, del_y):
+        print(f"I am in {self.x}, {self.y}, I received {del_x}, {del_y}")
         self.x += del_x
         self.y += del_y
         
         self.x = self.clamp(self.x, self.x_min, self.x_max - self.icon_w)
         self.y = self.clamp(self.y, self.y_min, self.y_max - self.icon_h)
+        print(f"I just moved to {self.x}, {self.y}")
 
     def clamp(self, n, minn, maxn):
         return max(min(maxn, n), minn)
@@ -30,8 +32,8 @@ class Wall(Point):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Wall, self).__init__(name, x_max, x_min, y_max, y_min)
         self.icon = cv2.imread("media/brick-wall.png") / 255.0
-        self.icon_w = 64
-        self.icon_h = 64
+        self.icon_w = 32
+        self.icon_h = 32
         self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
 
 class Drone(Point):
