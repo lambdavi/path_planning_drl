@@ -236,13 +236,12 @@ class RoverEnvST(Env):
         if mode == "human":
             #cv2.startWindowThread()
             cv2.imshow("Game", self.canvas.transpose((1,2,0)))
-            plt.ion()
+            """plt.ion()
             plt.xlabel(self.text)
             plt.imshow(self.canvas.transpose((1,2,0)))
             plt.pause(0.05)
-            plt.clf()
-
-            #cv2.waitKey(1)
+            plt.clf()"""
+            cv2.waitKey(1)
             #cv2.destroyAllWindows()
         elif mode == "rgb_array":
             return self.canvas

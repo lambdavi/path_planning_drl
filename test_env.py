@@ -19,7 +19,7 @@ env = RoverEnvST(obs_type='linear')
 model = DQN(policy="MlpPolicy", env=env, verbose=0)
 #model.learn(total_timesteps=100000, log_interval=4)
 #model.save("dqn_roverenv")
-model = DQN.load("models/best/model", env)
+model = DQN.load("models/best/model2", env)
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
 print(mean_reward, std_reward)
 # Enjoy trained agent

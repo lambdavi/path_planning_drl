@@ -14,23 +14,25 @@ from argparse import ArgumentParser
 # ARGUMENT PARSER
 parser = ArgumentParser()
 parser.add_argument('--algo', type=str, default='dqn')
-parser.add_argument('--obs', type=str, default='image')
+parser.add_argument('--obs', type=str, default='linear')
 parser.add_argument('--sb', action='store_true')
 parser.add_argument('--easy', action='store_true')
 parser.add_argument('--st', action='store_true')
 parser.add_argument('--log', action='store_true')
 parser.add_argument('--path', action='store_true')
-
+parser.add_argument('--render', action='store_true')
 args = parser.parse_args()
 
+if args.render:
+    render_mode = 'human'
 if args.easy:
     print("Easy Env Loaded!")
-    env = RoverEnvV2E(obs_type=args.obs, print_path=args.path)
+    env = RoverEnvV2E(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
 elif args.st:
     print("St Env Loaded!")
-    env = RoverEnvST(obs_type=args.obs, print_path=args.path)
+    env = RoverEnvST(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
 else:
-    env = RoverEnvV2(obs_type=args.obs)
+    env = RoverEnvV2(obs_type=args.obs, render_mode=render_mode)
 N_GAMES = 1000
 load_checkpoint = False
 score_history = []
