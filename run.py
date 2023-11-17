@@ -48,7 +48,7 @@ if args.sb:
     policy = "CnnPolicy" if args.obs == "image" else "MlpPolicy"
     print(policy)
     if args.algo == "dqn":
-        model = DQN(env=env, policy=policy, exploration_fraction=0.5, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=0, buffer_size=10000 if policy=='MlpPolicy' else 100, device='cpu' if policy=="MlpPolicy" else "auto")
+        model = DQN(env=env, policy=policy, exploration_fraction=0.5, tensorboard_log=log_dir, verbose=0, buffer_size=10000 if policy=='MlpPolicy' else 100, device='cpu' if policy=="MlpPolicy" else "auto")
     elif args.algo == "a2c":
         model = A2C(env=env, policy=policy, policy_kwargs=dict(normalize_images=False), tensorboard_log=log_dir, verbose=0, device='cpu' if policy=="MlpPolicy" else "auto")
     else:
