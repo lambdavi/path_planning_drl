@@ -31,7 +31,7 @@ class Point(object):
 class Wall(Point):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Wall, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/brick-wall.png")
+        self.icon = cv2.imread("media/brick-wall.png") / 255.0
         self.icon_w = 32
         self.icon_h = 32
         self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
@@ -39,7 +39,7 @@ class Wall(Point):
 class Drone(Point):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Drone, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/drone.png")
+        self.icon = cv2.imread("media/drone.png") / 255.0
         self.icon_w = 32
         self.icon_h = 32
         self.icon = cv2.resize(self.icon, (self.icon_h, self.icon_w))
@@ -47,7 +47,7 @@ class Drone(Point):
 class Aruco(Point):
     def __init__(self, name, x_max, x_min, y_max, y_min):
         super(Aruco, self).__init__(name, x_max, x_min, y_max, y_min)
-        self.icon = cv2.imread("media/aruco.png")
+        self.icon = cv2.imread("media/aruco.png") / 255.0
         self.found = 0
         self.icon_w = 32
         self.icon_h = 32

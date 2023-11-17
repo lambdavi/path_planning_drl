@@ -26,7 +26,7 @@ class RoverEnvST(Env):
             self.observation_shape = self.img_size
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
-                high=np.ones(self.observation_shape, dtype=np.float16)*255,
+                high=np.ones(self.observation_shape, dtype=np.float16),
                 dtype=np.float16
             )
         elif obs_type == 'linear':
@@ -41,7 +41,7 @@ class RoverEnvST(Env):
         self.action_space = spaces.Discrete(8,)
                         
         # Create a canvas to render the environment images upon 
-        self.canvas = np.ones(self.img_size)*255
+        self.canvas = np.ones(self.img_size)*1
 
         self.cells_visited = 0
         self.targets_collected = 0
@@ -96,7 +96,7 @@ class RoverEnvST(Env):
         self._place_targets(n=self.max_targets)
 
         # Reset the Canvas 
-        self.canvas = np.ones(self.img_size) * 255
+        self.canvas = np.ones(self.img_size) * 1
         plt.close()
 
         # Return observations based on the selected "obs_type"
