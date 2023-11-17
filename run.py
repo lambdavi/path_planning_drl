@@ -25,6 +25,8 @@ args = parser.parse_args()
 
 if args.render:
     render_mode = 'human'
+else:
+    render_mode = 'rgb_array'
 if args.easy:
     print("Easy Env Loaded!")
     env = RoverEnvV2E(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
