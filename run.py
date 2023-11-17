@@ -81,7 +81,7 @@ if args.sb:
     )
     checkpoint.append(checkpoint_callback)
     model.learn(
-        total_timesteps=1000000 if args.obs=="linear" else 100000,
+        total_timesteps=1000000 if args.obs=="linear" else 500000,
         callback=checkpoint,
         log_interval=4,
         progress_bar=True
