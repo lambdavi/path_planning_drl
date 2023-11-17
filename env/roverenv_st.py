@@ -6,11 +6,12 @@ from gymnasium import Env, spaces
 from env.elements import *
 import matplotlib.pyplot as plt
 from time import sleep
+from PIL import Image
 font = cv2.FONT_HERSHEY_COMPLEX_SMALL 
     
 class RoverEnvST(Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
-    def __init__(self, obs_type="image", print_path=False):
+    def __init__(self, obs_type="image", print_path=False, render_mode="rgb_array"):
         super(RoverEnvST, self).__init__()
         self.obs_type = obs_type
         self.max_targets = 4
@@ -18,13 +19,14 @@ class RoverEnvST(Env):
         self.drone_path = []  # Initialize an empty list to store the drone's path
         self.print_path = print_path
         self.img_size = (3, 600, 800)
+        self.render_mode = render_mode
 
         if obs_type == 'image':
             # Define the observation space for image-based observations
             self.observation_shape = self.img_size
             self.observation_space = spaces.Box(
                 low=np.zeros(self.observation_shape, dtype=np.float16),
-                high=np.ones(self.observation_shape, dtype=np.float16),
+                high=np.ones(self.observation_shape, dtype=np.float16)*255,
                 dtype=np.float16
             )
         elif obs_type == 'linear':
@@ -39,7 +41,8 @@ class RoverEnvST(Env):
         self.action_space = spaces.Discrete(8,)
                         
         # Create a canvas to render the environment images upon 
-        self.canvas = np.ones(self.img_size) * 1
+        self.canvas = np.ones(self.img_size)*255
+
         self.cells_visited = 0
         self.targets_collected = 0
         self.elements = []
@@ -57,16 +60,17 @@ class RoverEnvST(Env):
 
         # Draw the heliopter on canvas
         for elem in self.elements:
-            if isinstance(elem, Aruco):
-                if elem.found == 1:
-                    continue
+            if isinstance(elem, Aruco) and elem.found==1:
+                continue
             elem_shape = elem.icon.shape
             x,y = elem.x, elem.y
             self.canvas[:, y:y + elem_shape[1], x:x + elem_shape[0]] = elem.icon.transpose((2, 0, 1))
 
         self.text = 'Visited: {} | Targets Collected: {}'.format(self.cells_visited, self.targets_collected)
-        # Put the info on canvas 
-        self.canvas = cv2.putText(self.canvas, self.text, (10,20), font,  0.8, (255,255,255), 2, cv2.LINE_AA)
+            # Put the info on canvas 
+        if self.render_mode=="human":
+            self.canvas = cv2.putText(self.canvas, self.text, (10,20), font,  0.8, (255,255,255), 2, cv2.LINE_AA)
+        
 
     def reset(self, seed=None):
         self.cells_visited = 0
@@ -92,15 +96,17 @@ class RoverEnvST(Env):
         self._place_targets(n=self.max_targets)
 
         # Reset the Canvas 
-        self.canvas = np.ones(self.img_size) * 1
+        self.canvas = np.ones(self.img_size) * 255
         plt.close()
 
         # Return observations based on the selected "obs_type"
         self.draw_elements_on_canvas()
+    
         if self.obs_type == 'image':
             return self.canvas, {}
         elif self.obs_type == 'linear':
             return self.calculate_linear_observations(), {}
+        
         
     def calculate_linear_observations(self):
         drone_x, drone_y = self.drone.get_position()
@@ -165,44 +171,7 @@ class RoverEnvST(Env):
         #print(len(observations))
         return np.array(observations, dtype=np.float32)
     
-    """    def calculate_linear_observations(self):
-        drone_x, drone_y = self.drone.get_position()
-        observations = []
-
-        max_distance = max(self.img_size[1], self.img_size[2])  # Adjust this based on your environment size
-        closest_elem = []
-        local_max_dist = 99999999
-        for elem in self.elements:
-            if isinstance(elem, Aruco) and elem.found == 0:
-                target_x, target_y = elem.get_position()
-                distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
-                if distance < local_max_dist:
-                    local_max_dist = distance
-                    direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
-                    closest_elem = [[np.cos(np.radians(direction)), np.sin(np.radians(direction))], distance/max_distance]
-        # Encode direction into observations
-        observations.extend(closest_elem[0])
-
-        # Normalize and encode distance into observations
-        observations.append(closest_elem[1])
-
-        for elem in self.elements:
-            if isinstance(elem, Wall):
-                target_x, target_y = elem.get_position()
-                direction = math.degrees(math.atan2(target_y - drone_y, target_x - drone_x))
-                distance = np.sqrt((target_x - drone_x) ** 2 + (target_y - drone_y) ** 2)
-
-                # Encode direction into observations
-                observations.extend([np.cos(np.radians(direction)), np.sin(np.radians(direction))])
-
-                # Normalize and encode distance into observations
-                observations.append(distance / max_distance)
-        #print(len(observations))
-        return np.array(observations, dtype=np.float32)"""
-
-
-
-            
+        
     def _place_walls(self, n=5):
         for i in range(n):
             valid_position = False
