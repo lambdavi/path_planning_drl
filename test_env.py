@@ -1,7 +1,7 @@
 from env.roverenv_easy import RoverEnvV2
 from env.roverenv_st import RoverEnvST
 import matplotlib.pyplot as plt
-from stable_baselines3 import DQN, A2C
+from stable_baselines3 import DQN, A2C, PPO
 from stable_baselines3.common.evaluation import evaluate_policy
 
 from stable_baselines3.common.env_checker import check_env
@@ -14,12 +14,14 @@ from time import sleep
 # LATER WE WILL USE STABLEBASELINES
 # It will check your custom environment and output additional warnings if needed
 
-env = RoverEnvST(obs_type='linear')
+env = RoverEnvST(obs_type='linear', print_path=True)
 #env = RoverEnvV2(obs_type='linear')
-model = DQN(policy="MlpPolicy", env=env, verbose=0)
+model = PPO(policy="MlpPolicy", env=env, verbose=1)
+#model = DQN(policy="MlpPolicy", env=env, verbose=0)
+
 #model.learn(total_timesteps=100000, log_interval=4)
 #model.save("dqn_roverenv")
-model = DQN.load("models/best/model2", env)
+model = PPO.load("models/best/ppo", env)
 mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
 print(mean_reward, std_reward)
 # Enjoy trained agent

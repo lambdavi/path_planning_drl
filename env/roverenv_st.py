@@ -325,7 +325,7 @@ class RoverEnvST(Env):
             x, y = cell
             x_pos = x * self.drone.icon_w
             y_pos = y * self.drone.icon_h
-            self.canvas[:, y_pos:y_pos + self.drone.icon_h, x_pos:x_pos + self.drone.icon_w] = 0.5  # Change the color to draw the path
+            self.canvas[:, y_pos:y_pos + self.drone.icon_h, x_pos:x_pos + self.drone.icon_w] = 200  # Change the color to draw the path
 
     def has_collided(self, elem1, elem2):
         x_col = False
