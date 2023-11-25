@@ -73,8 +73,7 @@ if args.sb:
                     ent_coef = 0.01,
                     policy_kwargs=dict(normalize_images=False), 
                     tensorboard_log=log_dir, 
-                    verbose=0, 
-                    device='cpu' if policy=="MlpPolicy" else "auto")
+                    verbose=0)
         
     # Train the agent
     if LOG_ON:
