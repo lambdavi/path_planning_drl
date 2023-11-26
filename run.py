@@ -35,7 +35,7 @@ if args.easy:
 elif args.st:
     print("St Env Loaded!")
     env = RoverEnvST(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
-elif args.st:
+elif args.drone:
     print("Drone Env Loaded!")
     env = DroneEnv(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
 else:
