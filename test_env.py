@@ -10,19 +10,28 @@ import imageio
 import numpy as np
 from time import sleep
 
+from stable_baselines3.common.monitor import Monitor
 
 # LATER WE WILL USE STABLEBASELINES
 # It will check your custom environment and output additional warnings if needed
 
-env = RoverEnvST(obs_type='linear', print_path=True)
+env = Monitor(RoverEnvST(obs_type='linear'))
 #env = RoverEnvV2(obs_type='linear')
-model = PPO(policy="MlpPolicy", env=env, verbose=1)
+model = PPO(env=env, 
+            policy="MlpPolicy", 
+            n_steps=1024, 
+            n_epochs=4, 
+            gamma = 0.999,
+            gae_lambda = 0.98,
+            ent_coef = 0.01,
+            policy_kwargs=dict(normalize_images=False), 
+            verbose=0)
 #model = DQN(policy="MlpPolicy", env=env, verbose=0)
 
 #model.learn(total_timesteps=100000, log_interval=4)
 #model.save("dqn_roverenv")
-model = PPO.load("models/best/ppo", env)
-mean_reward, std_reward = evaluate_policy(model, model.get_env(), n_eval_episodes=10)
+model = PPO.load("models/best/new_ppo", env)
+mean_reward, std_reward = evaluate_policy(model, env=env, n_eval_episodes=10, deterministic=True)
 print(mean_reward, std_reward)
 # Enjoy trained agent
 obs = env.reset()[0]

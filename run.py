@@ -1,6 +1,7 @@
 from env.roverenv_v2g_fin import RoverEnvV2
 from env.roverenv_easy import RoverEnvV2 as RoverEnvV2E
 from env.roverenv_st import RoverEnvST
+from env.drone_env import DroneEnv
 from stable_baselines3 import DQN, A2C, PPO
 from agents.actor_critic import Agent
 from agents.LQAgent import LinearDQN_Agent, ImageDQN_Agent
@@ -18,6 +19,7 @@ parser.add_argument('--obs', type=str, default='linear')
 parser.add_argument('--sb', action='store_true')
 parser.add_argument('--easy', action='store_true')
 parser.add_argument('--st', action='store_true')
+parser.add_argument('--drone', action='store_true')
 parser.add_argument('--log', action='store_true')
 parser.add_argument('--path', action='store_true')
 parser.add_argument('--render', action='store_true')
@@ -33,6 +35,9 @@ if args.easy:
 elif args.st:
     print("St Env Loaded!")
     env = RoverEnvST(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
+elif args.st:
+    print("Drone Env Loaded!")
+    env = DroneEnv(obs_type=args.obs, print_path=args.path, render_mode=render_mode)
 else:
     env = RoverEnvV2(obs_type=args.obs, render_mode=render_mode)
 N_GAMES = 1000
