@@ -64,6 +64,10 @@ if args.sb:
     elif args.algo == "a2c":
         model = A2C(env=env, 
                     policy=policy, 
+                    n_steps=128,
+                    gamma = 0.999,
+                    gae_lambda = 0.98,
+                    ent_coef = 0.01,
                     policy_kwargs=dict(normalize_images=False), 
                     tensorboard_log=log_dir, 
                     verbose=0, 

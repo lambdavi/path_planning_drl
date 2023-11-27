@@ -19,6 +19,7 @@ env = Monitor(RoverEnvST(obs_type='linear'))
 #env = RoverEnvV2(obs_type='linear')
 model = PPO(env=env, 
             policy="MlpPolicy", 
+            batch_size=128,
             n_steps=1024, 
             n_epochs=4, 
             gamma = 0.999,
@@ -30,7 +31,7 @@ model = PPO(env=env,
 
 #model.learn(total_timesteps=100000, log_interval=4)
 #model.save("dqn_roverenv")
-model = PPO.load("models/best/new_ppo", env)
+model = PPO.load("models/best/new_ppo2", env)
 mean_reward, std_reward = evaluate_policy(model, env=env, n_eval_episodes=10, deterministic=True)
 print(mean_reward, std_reward)
 # Enjoy trained agent
